@@ -86,12 +86,22 @@ def portfolio_stats(m: MarketInputs, w: np.ndarray, risk_free: float) -> tuple[f
 def efficient_frontier(m: MarketInputs, n_points: int = 40) -> list[tuple[float, float]]:
     """Trace the frontier: min-vol portfolio for a sweep of target returns.
 
-    Targets run from the lowest to the highest single-asset expected return.
-    Points whose solved return misses the target (infeasible region, e.g. a
-    binding max-weight cap) are dropped.
+    The min-vol-for-target curve is a parabola: targets below the global
+    minimum-volatility portfolio's return trace the INEFFICIENT lower branch
+    (more risk for less return). Only targets at/above that return belong on
+    the efficient frontier, so the sweep starts there. Points whose solved
+    return misses the target (infeasible region, e.g. a binding max-weight
+    cap) are dropped, and the result is filtered to the upper envelope
+    (return strictly increasing in volatility) as a safety net against
+    solver noise — otherwise the plotted line zigzags.
     """
+    w_gmv = min_vol_portfolio(m)
+    if w_gmv is None:
+        return []
+    gmv_ret = float(w_gmv @ m.mu)
+
     points: list[tuple[float, float]] = []
-    for target in np.linspace(m.mu.min(), m.mu.max(), n_points):
+    for target in np.linspace(max(gmv_ret, m.mu.min()), m.mu.max(), n_points):
         w = min_vol_portfolio(m, float(target))
         if w is None:
             continue
@@ -99,7 +109,14 @@ def efficient_frontier(m: MarketInputs, n_points: int = 40) -> list[tuple[float,
         if abs(ret - target) < 0.01:  # constraint actually bound
             points.append((vol, ret))
     points.sort(key=lambda p: p[0])
-    return points
+    frontier: list[tuple[float, float]] = []
+    best = -float("inf")
+    for vol, ret in points:
+        if ret > best + 1e-9:
+            frontier.append((vol, ret))
+            best = ret
+    return frontier
+
 
 
 def random_cloud(m: MarketInputs, risk_free: float, size: int, seed: int = 42

@@ -100,6 +100,46 @@ export default function FrontierView({ data }) {
           <div className="metric-sub">Sharpe {minVol.sharpe.toFixed(2)}</div>
         </div>
       </div>
+      <div className="howto">
+        <h3>How to read this chart</h3>
+        <ul>
+          <li>
+            <strong>Horizontal axis — Volatility:</strong> how much the
+            portfolio&rsquo;s value swings up and down in a year. Further
+            right means a bumpier ride.
+          </li>
+          <li>
+            <strong>Vertical axis — Return:</strong> average yearly gain over
+            the chosen period. Higher means more growth.
+          </li>
+          <li>
+            <strong>Each dot:</strong> one random mix of the tickers. Its
+            color is the Sharpe ratio &mdash; how much return you get per
+            unit of bumpiness. Yellow means more return for the risk, purple
+            means less.
+          </li>
+          <li>
+            <strong>Black line &mdash; Efficient frontier:</strong> the best
+            return achievable at each risk level. Any dot below the line is a
+            worse deal: same risk, less return.
+          </li>
+          <li>
+            <strong>Red star &mdash; Max Sharpe:</strong> the mix with the
+            best return per unit of risk. The sweet spot if you want
+            efficiency.
+          </li>
+          <li>
+            <strong>Teal diamond &mdash; Min volatility:</strong> the calmest
+            possible mix. Smallest swings, but usually lower return too.
+          </li>
+          <li>
+            <strong>Orange dots:</strong> holding one asset all on its own,
+            with no mixing. Notice how most of them sit below the line
+            &mdash; that gap is the payoff from diversification.
+          </li>
+        </ul>
+      </div>
     </div>
   );
 }
+

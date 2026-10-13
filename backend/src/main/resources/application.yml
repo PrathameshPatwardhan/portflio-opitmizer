@@ -3,9 +3,7 @@ server:
 
 quant:
   service:
-    # Overridden in docker-compose via QUANT_SERVICE_URL
     url: ${QUANT_SERVICE_URL:http://localhost:8000}
 
 frontend:
-  # Origin allowed by CORS (Vite dev server). Overridable via FRONTEND_ORIGIN.
   origin: ${FRONTEND_ORIGIN:http://localhost:5173}
