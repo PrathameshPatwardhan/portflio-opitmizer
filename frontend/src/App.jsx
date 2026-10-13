@@ -111,7 +111,7 @@ export default function App() {
       </div>
 
       <footer className="footer">
-        React + Spring Boot + Python quant service · data: Yahoo Finance
+        React + Spring Boot + Python quant service · data: Yahoo Finance Prathamesh
       </footer>
     </div>
   );
