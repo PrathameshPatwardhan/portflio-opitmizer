@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 /** Thin forwarder: every call goes to the quant-service, which owns the math.
  *  Quant-side 4xx/5xx responses are re-thrown with the same status and body
@@ -24,9 +25,11 @@ public class QuantServiceClient {
     private static final Duration TIMEOUT = Duration.ofSeconds(120);
 
     private final WebClient webClient;
+    private final QuantResponseCache cache;
 
-    public QuantServiceClient(WebClient quantWebClient) {
+    public QuantServiceClient(WebClient quantWebClient, QuantResponseCache cache) {
         this.webClient = quantWebClient;
+        this.cache = cache;
     }
 
     public OptimizeResponse optimize(OptimizeRequest req) {
@@ -77,25 +80,54 @@ public class QuantServiceClient {
     }
 
     private <T> T post(String path, Object body, Class<T> type) {
+        String key = "POST " + path + " " + body.hashCode();
         try {
-            return webClient.post().uri(path).bodyValue(body)
+            T result = webClient.post().uri(path).bodyValue(body)
                     .retrieve()
                     .bodyToMono(type)
                     .block(TIMEOUT);
+            cache.put(key, result);
+            return result;
         } catch (WebClientResponseException e) {
-            throw new ResponseStatusException(
-                    e.getStatusCode(), e.getResponseBodyAsString(), e);
+            if (e.getStatusCode().is4xxClientError()) {
+                // Real answer for this request (e.g. 422 infeasible): don't mask it.
+                throw new ResponseStatusException(
+                        e.getStatusCode(), e.getResponseBodyAsString(), e);
+            }
+            // 5xx: the quant is sick -> fall through to the stale cache below.
+        } catch (Exception e) {
+            // Quant unreachable -> fall through to the stale cache below.
         }
+        T stale = cache.get(key, type);
+        if (stale != null) {
+            return stale;
+        }
+        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                "quant service unavailable and no cached response for " + path);
     }
 
     private <T> T get(String path, Class<T> type) {
+        String key = "GET " + path;
         try {
-            return webClient.get().uri(path).retrieve()
+            T result = webClient.get().uri(path).retrieve()
                     .bodyToMono(type)
                     .block(TIMEOUT);
+            cache.put(key, result);
+            return result;
         } catch (WebClientResponseException e) {
-            throw new ResponseStatusException(
-                    e.getStatusCode(), e.getResponseBodyAsString(), e);
+            if (e.getStatusCode().is4xxClientError()) {
+                throw new ResponseStatusException(
+                        e.getStatusCode(), e.getResponseBodyAsString(), e);
+            }
+        } catch (Exception e) {
+            // Quant unreachable -> fall through to the stale cache below.
         }
+        T stale = cache.get(key, type);
+        if (stale != null) {
+            return stale;
+        }
+        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                "quant service unavailable and no cached response for " + path);
     }
+
 }
