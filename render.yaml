@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: portfolio-quant
+    env: docker
+    dockerfilePath: ./quant-service/Dockerfile
+    plan: free
+    healthCheckPath: /health
+
+  - type: web
+    name: portfolio-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: QUANT_SERVICE_URL
+        value: https://portfolio-quant.onrender.com
+      - key: FRONTEND_ORIGIN
+        value: https://your-app.vercel.app
