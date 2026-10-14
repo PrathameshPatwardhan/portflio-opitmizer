@@ -62,14 +62,27 @@ export default function App() {
             Markowitz mean-variance optimization on real market data.
           </p>
 
-          <p className="intro">
-            Pick a few tickers, and this app finds the mix of them with the best
-            return for its risk — the mean-variance math from portfolio theory,
-            run on real market prices. <strong>How to use it:</strong> 1) type
-            tickers on the left, 2) click Run optimization, 3) explore the three
-            tabs — Frontier for the big picture, Portfolio for the exact mix,
-            Rebalance for whether rebalancing actually helps.
-          </p>
+          <div className="intro-card">
+            <p className="intro-text">
+              Pick a few tickers, and this app finds the mix of them with the
+              best return for its risk — the mean-variance math from portfolio
+              theory, run on real market prices.
+            </p>
+            <ol className="intro-steps">
+              <li>
+                <span className="step-num">1</span>
+                <span><strong>Type tickers</strong> in the panel on the left</span>
+              </li>
+              <li>
+                <span className="step-num">2</span>
+                <span><strong>Run optimization</strong> to compute the frontier</span>
+              </li>
+              <li>
+                <span className="step-num">3</span>
+                <span><strong>Explore the tabs</strong> — Frontier, Portfolio, Rebalance</span>
+              </li>
+            </ol>
+          </div>
 
         </div>
       </header>
