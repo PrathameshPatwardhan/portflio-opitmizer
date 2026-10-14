@@ -3,6 +3,7 @@ services:
     name: pmp-portfolio-quant
     env: docker
     dockerfilePath: ./quant-service/Dockerfile
+    dockerContext: ./quant-service
     plan: free
     healthCheckPath: /health
 
@@ -10,6 +11,7 @@ services:
     name: pmp-portfolio-backend
     env: docker
     dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     plan: free
     healthCheckPath: /api/health
     envVars:
