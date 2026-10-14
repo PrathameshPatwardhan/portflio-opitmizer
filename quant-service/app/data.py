@@ -60,3 +60,24 @@ def annualize(rets: pd.DataFrame, trading_days: int = 252) -> tuple[pd.Series, p
     mu = rets.mean() * trading_days
     cov = rets.cov() * trading_days
     return mu, cov
+
+def fetch_bars(ticker: str, period: str = "5y") -> pd.DataFrame:
+    """Daily OHLCV bars for ONE ticker via yfinance (auto-adjusted).
+
+    Returns a DataFrame indexed by date with columns
+    open/high/low/close/adj_close/volume. Empty DataFrame on failure.
+    """
+    if not _HAS_YF:
+        return pd.DataFrame()
+    try:
+        df = yf.download(ticker, period=period, auto_adjust=True, progress=False)
+        if df.empty:
+            return pd.DataFrame()
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+        df = df.rename(columns=str.lower)
+        df["adj_close"] = df["close"]  # auto_adjust=True already adjusts OHLC
+        return df[["open", "high", "low", "close", "adj_close", "volume"]].dropna()
+    except Exception:
+        return pd.DataFrame()
+

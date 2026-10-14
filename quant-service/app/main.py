@@ -1,6 +1,8 @@
 """Quant service — FastAPI wrapper around the quant engine.
 
 Stateless JSON API; all heavy math lives in app/quant.py.
+MySQL integration: POST /ingest (manual refresh), GET /universe,
+and a `source` toggle (mysql | live | auto) on the optimize endpoints.
 """
 from __future__ import annotations
 
@@ -8,7 +10,7 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from .data import annualize, fetch_prices, log_returns
+from .data import annualize, fetch_bars, fetch_prices, log_returns
 from .quant import (
     MarketInputs,
     efficient_frontier,
@@ -19,6 +21,18 @@ from .quant import (
     simulate_rebalance,
     track_record,
 )
+from .store import (
+    StoreUnavailable,
+    db_available,
+    get_last_ingest,
+    get_prices as db_get_prices,
+    get_universe,
+    init_db,
+    log_ingest_run,
+    upsert_company,
+    upsert_prices,
+)
+from .universe import SEED_UNIVERSE
 
 app = FastAPI(title="Portfolio Optimizer — quant service", version="1.0.0")
 
@@ -36,6 +50,7 @@ class OptimizeRequest(BaseModel):
     maxWeight: float = 1.0
     frontierPoints: int = Field(default=40, ge=2, le=200)
     cloudSize: int = Field(default=3000, ge=100, le=20000)
+    source: str = "live"
 
 
 class TargetRequest(OptimizeRequest):
@@ -49,6 +64,12 @@ class RebalanceRequest(BaseModel):
     longOnly: bool = True
     maxWeight: float = 1.0
     frequency: str = "Q"  # "Q" quarterly or "M" monthly
+    source: str = "live"
+
+
+class IngestRequest(BaseModel):
+    tickers: list[str] = Field(default_factory=list)  # empty = full universe
+    period: str = "5y"
 
 
 # ----------------------------------------------------------------------------
@@ -63,9 +84,55 @@ def _clean_tickers(tickers: list[str]) -> list[str]:
     return seen
 
 
+def _prices_for(tickers: list[str], period: str, source: str) -> tuple["pd.DataFrame", str]:
+    """Resolve prices per the requested source. Returns (prices, data_source)."""
+    import pandas as pd
+
+    if source not in ("mysql", "live", "auto"):
+        raise HTTPException(422, detail='source must be "mysql", "live", or "auto".')
+    if source == "live":
+        return fetch_prices(tickers, period=period), "live"
+
+    # mysql or auto: try the database first
+    try:
+        db = db_get_prices(tickers)
+    except StoreUnavailable as e:
+        if source == "mysql":
+            raise HTTPException(503, detail=str(e))
+        return fetch_prices(tickers, period=period), "live"  # auto falls back
+
+    missing = [t for t in tickers if t not in db.columns]
+    fresh = not db.empty and (
+            pd.Timestamp.today().normalize() - db.index.max().normalize()
+    ).days <= 7
+    if not missing and fresh and db.shape[1] >= 2:
+        return _slice_period(db, period), "mysql"
+
+    if source == "mysql":
+        problems = []
+        if missing:
+            problems.append(f"no MySQL data for: {', '.join(missing)}")
+        if not fresh:
+            problems.append("MySQL data is stale (older than 7 days)")
+        raise HTTPException(
+            422, detail="; ".join(problems) + ". Use source=live or refresh via POST /ingest."
+        )
+    return fetch_prices(tickers, period=period), "live"  # auto falls back
+
+
+def _slice_period(prices: "pd.DataFrame", period: str) -> "pd.DataFrame":
+    import pandas as pd
+
+    months = {"1mo": 1, "3mo": 3, "6mo": 6, "1y": 12, "2y": 24, "5y": 60, "10y": 120}.get(period)
+    if not months:
+        return prices
+    cutoff = prices.index.max() - pd.DateOffset(months=months)
+    return prices[prices.index >= cutoff]
+
+
 def _market_inputs(
-    tickers: list[str], period: str, long_only: bool, max_weight: float
-) -> tuple[MarketInputs, "pd.DataFrame"]:
+        tickers: list[str], period: str, long_only: bool, max_weight: float, source: str = "live"
+) -> tuple[MarketInputs, "pd.DataFrame", str]:
     """Fetch data and build MarketInputs; raises HTTPException(422) if unusable."""
     import pandas as pd  # local import keeps module import light
 
@@ -78,10 +145,10 @@ def _market_inputs(
             detail=f"maxWeight {max_weight:.0%} is infeasible with "
                    f"{len(tickers)} tickers (needs at least {1.0 / len(tickers):.0%} each).",
         )
-    prices = fetch_prices(tickers, period=period)
+    prices, data_source = _prices_for(tickers, period, source)
     if prices.shape[1] < 2:
         raise HTTPException(
-            422, detail="Could not fetch data for at least two tickers."
+            422, detail="Could not get data for at least two tickers."
         )
     mu, cov = annualize(log_returns(prices))
     m = MarketInputs(
@@ -91,7 +158,7 @@ def _market_inputs(
         long_only=long_only,
         max_weight=max_weight,
     )
-    return m, prices
+    return m, prices, data_source
 
 
 def _weights_dict(m: MarketInputs, w: np.ndarray) -> dict[str, float]:
@@ -106,14 +173,66 @@ def _portfolio_block(m: MarketInputs, w: np.ndarray, risk_free: float) -> dict:
 # ----------------------------------------------------------------------------
 # Routes
 # ----------------------------------------------------------------------------
+@app.on_event("startup")
+def _startup() -> None:
+    try:
+        init_db()  # create tables if missing; tolerate MySQL being down
+    except StoreUnavailable:
+        pass
+
+
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok"}
+    return {"status": "ok", "db": "up" if db_available() else "down"}
+
+
+@app.post("/ingest")
+def ingest(req: IngestRequest) -> dict:
+    """Manual refresh: fetch yfinance bars and store them in MySQL.
+
+    Idempotent — re-ingesting overwrites the same (ticker, date) rows.
+    """
+    tickers = _clean_tickers(req.tickers) or [c["ticker"] for c in SEED_UNIVERSE]
+    ok: list[str] = []
+    failed: list[str] = []
+    total = 0
+    try:
+        for t in tickers:
+            bars = fetch_bars(t, period=req.period)
+            if bars.empty:
+                failed.append(t)
+                continue
+            total += upsert_prices(t, bars)
+            ok.append(t)
+        for c in SEED_UNIVERSE:
+            if c["ticker"] in ok:
+                upsert_company(c["ticker"], c["name"], c["sector"], c["exchange"])
+        log_ingest_run(ok, total, status="ok" if not failed else "partial")
+    except StoreUnavailable as e:
+        raise HTTPException(503, detail=str(e))
+    return {"tickers": ok, "failed": failed, "rowsUpserted": total}
+
+
+@app.get("/universe")
+def universe() -> dict:
+    """The curated company universe with per-ticker data coverage."""
+    try:
+        return {"companies": get_universe(), "lastIngest": get_last_ingest()}
+    except StoreUnavailable as e:
+        raise HTTPException(503, detail=str(e))
+
+
+@app.get("/ingest/last")
+def ingest_last() -> dict:
+    try:
+        return {"lastIngest": get_last_ingest()}
+    except StoreUnavailable as e:
+        raise HTTPException(503, detail=str(e))
 
 
 @app.post("/optimize")
 def optimize(req: OptimizeRequest) -> dict:
-    m, _ = _market_inputs(req.tickers, req.period, req.longOnly, req.maxWeight)
+    m, _, data_source = _market_inputs(req.tickers, req.period, req.longOnly, req.maxWeight, req.source)
 
     w_sharpe = max_sharpe_portfolio(m, req.riskFreeRate)
     w_minvol = min_vol_portfolio(m)
@@ -136,6 +255,7 @@ def optimize(req: OptimizeRequest) -> dict:
 
     asset_vols = np.sqrt(np.diag(m.cov))
     return {
+        "dataSource": data_source,
         "assets": [
             {"ticker": t, "ret": float(r), "vol": float(v)}
             for t, r, v in zip(m.tickers, m.mu, asset_vols)
@@ -153,7 +273,7 @@ def optimize(req: OptimizeRequest) -> dict:
 
 @app.post("/optimize/target")
 def optimize_target(req: TargetRequest) -> dict:
-    m, _ = _market_inputs(req.tickers, req.period, req.longOnly, req.maxWeight)
+    m, _, data_source = _market_inputs(req.tickers, req.period, req.longOnly, req.maxWeight, req.source)
     w = min_vol_portfolio(m, target_return=req.targetReturn)
     if w is None:
         raise HTTPException(
@@ -161,15 +281,17 @@ def optimize_target(req: TargetRequest) -> dict:
             detail=f"No feasible portfolio at target return {req.targetReturn:.1%} "
                    "with the current constraints.",
         )
-    return _portfolio_block(m, w, req.riskFreeRate)
+    result = _portfolio_block(m, w, req.riskFreeRate)
+    result["dataSource"] = data_source
+    return result
 
 
 @app.post("/rebalance")
 def rebalance(req: RebalanceRequest) -> dict:
     if req.frequency not in ("Q", "M"):
         raise HTTPException(422, detail='frequency must be "Q" or "M".')
-    m, prices = _market_inputs(
-        req.tickers, req.period, req.longOnly, req.maxWeight
+    m, prices, data_source = _market_inputs(
+        req.tickers, req.period, req.longOnly, req.maxWeight, req.source
     )
 
     w_sharpe = max_sharpe_portfolio(m, req.riskFreeRate)
@@ -188,6 +310,7 @@ def rebalance(req: RebalanceRequest) -> dict:
     rb_stats["values"] = [float(x) for x in eq_rb]
 
     return {
+        "dataSource": data_source,
         "dates": [d.strftime("%Y-%m-%d") for d in daily.index],
         "buyHold": bh_stats,
         "rebalanced": rb_stats,

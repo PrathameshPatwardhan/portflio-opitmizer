@@ -10,4 +10,11 @@ public record OptimizeRequest(
         boolean longOnly,
         double maxWeight,
         int frontierPoints,
-        int cloudSize) {}
+        int cloudSize,
+        String source) {
+    public OptimizeRequest {
+        if (source == null) {
+            source = "live";
+        }
+    }
+}

@@ -9,4 +9,11 @@ public record RebalanceRequest(
         double riskFreeRate,
         boolean longOnly,
         double maxWeight,
-        String frequency) {}
+        String frequency,
+        String source) {
+    public RebalanceRequest {
+        if (source == null) {
+            source = "live";
+        }
+    }
+}

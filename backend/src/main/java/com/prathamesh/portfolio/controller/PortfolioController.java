@@ -39,6 +39,23 @@ public class PortfolioController {
         return quant.rebalance(req);
     }
 
+    /** Manual refresh: fetch fresh market data into MySQL. */
+    @PostMapping("/ingest")
+    public Map<String, Object> ingest(@RequestBody Map<String, Object> req) {
+        return quant.ingest(req);
+    }
+
+    /** The curated MySQL universe with per-ticker coverage. */
+    @GetMapping("/universe")
+    public Map<String, Object> universe() {
+        return quant.universe();
+    }
+
+    @GetMapping("/ingest/last")
+    public Map<String, Object> ingestLast() {
+        return quant.ingestLast();
+    }
+
     @GetMapping("/health")
     public Map<String, String> health() {
         return Map.of("status", "ok", "quant", quant.quantUp() ? "up" : "down");

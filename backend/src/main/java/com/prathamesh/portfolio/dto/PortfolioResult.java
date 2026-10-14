@@ -6,4 +6,5 @@ public record PortfolioResult(
         Map<String, Double> weights,
         double ret,
         double vol,
-        double sharpe) {}
+        double sharpe,
+        String dataSource) {}

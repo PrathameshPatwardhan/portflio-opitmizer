@@ -3,6 +3,7 @@ package com.prathamesh.portfolio.dto;
 import java.util.List;
 
 public record OptimizeResponse(
+        String dataSource,
         List<AssetPoint> assets,
         List<FrontierPoint> frontier,
         Cloud cloud,

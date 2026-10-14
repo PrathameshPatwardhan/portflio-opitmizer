@@ -15,19 +15,29 @@ async function postJson(path, body) {
   return res.json();
 }
 
+async function getJson(path) {
+  const res = await fetch(`${BASE}/api${path}`);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API ${res.status}: ${text.slice(0, 300)}`);
+  }
+  return res.json();
+}
+
 /** Shape the sidebar inputs into the /optimize request body. */
 export function buildOptimizeBody(inputs) {
   return {
     tickers: inputs.tickers
-      .split(",")
-      .map((t) => t.trim().toUpperCase())
-      .filter(Boolean),
+        .split(",")
+        .map((t) => t.trim().toUpperCase())
+        .filter(Boolean),
     period: inputs.period,
     riskFreeRate: inputs.riskFreeRate / 100,
     longOnly: inputs.longOnly,
     maxWeight: inputs.maxWeight / 100,
     frontierPoints: 40,
     cloudSize: 3000,
+    source: inputs.source || "live",
   };
 }
 
@@ -42,9 +52,14 @@ export function rebalance(inputs, frequency) {
     riskFreeRate: b.riskFreeRate,
     longOnly: b.longOnly,
     maxWeight: b.maxWeight,
+    source: b.source,
     frequency,
   });
 }
+
+export const universe = () => getJson("/universe");
+export const ingestLast = () => getJson("/ingest/last");
+export const ingest = (body = {}) => postJson("/ingest", body);
 
 export async function health() {
   const res = await fetch(`${BASE}/api/health`);
