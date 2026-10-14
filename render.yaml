@@ -16,4 +16,4 @@ services:
       - key: QUANT_SERVICE_URL
         value: https://portfolio-quant.onrender.com
       - key: FRONTEND_ORIGIN
-        value: https://your-app.vercel.app
+        value: https://portflio-opitmizer-e1n4.vercel.app/
