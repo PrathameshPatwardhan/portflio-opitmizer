@@ -1,4 +1,4 @@
-# Portfolio Optimizer — microservices edition
+# Portfolio Optimizer
 
 Interactive Markowitz mean-variance portfolio optimizer on real market data.
 Type tickers → efficient frontier, max-Sharpe / min-volatility / target-return
