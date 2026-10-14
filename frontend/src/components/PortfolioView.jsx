@@ -167,12 +167,37 @@ export default function PortfolioView({ optResult, inputs, onError }) {
             </tbody>
           </table>
 
-          <button
-            className="secondary"
-            onClick={() => downloadCsv(shown.weights)}
-          >
-            Download weights (CSV)
-          </button>
+          <div className="howto">
+            <h3>What you&rsquo;re looking at</h3>
+            <ul>
+              <li>
+                <strong>Weights:</strong> what share of your money goes into
+                each asset. They always add up to 100%.
+              </li>
+              <li>
+                <strong>Max Sharpe:</strong> the mix with the best return for
+                each unit of risk taken. The efficiency sweet spot.
+              </li>
+              <li>
+                <strong>Min volatility:</strong> the calmest mix possible —
+                smallest swings, usually lower return.
+              </li>
+              <li>
+                <strong>Target return:</strong> you pick the return you want;
+                the app finds the calmest mix that aims for it.
+              </li>
+              <li>
+                <strong>The three numbers:</strong> Return is the expected
+                yearly gain, estimated from history. Volatility is how bumpy
+                the ride is. Sharpe is return per unit of risk above the
+                risk-free rate — higher is better.
+              </li>
+              <li>
+                <strong>Keep in mind:</strong> these estimates come from past
+                prices. History is the input, not a promise.
+              </li>
+            </ul>
+          </div>
         </>
       )}
     </div>

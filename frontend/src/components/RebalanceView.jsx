@@ -104,11 +104,36 @@ export default function RebalanceView({
               ))}
             </tbody>
           </table>
-          <p className="caption">
-            Rebalanced turnover: {fmtPct(result.turnover)} of portfolio value
-            across {result.rebalances} rebalances. Turnover is a cost proxy —
-            real trading would eat into the rebalanced line.
-          </p>
+          <div className="howto">
+            <h3>What you&rsquo;re looking at</h3>
+            <ul>
+              <li>
+                <strong>Buy &amp; hold:</strong> pick the mix once and never
+                touch it. Winners grow into a bigger share, so the mix drifts
+                over time.
+              </li>
+              <li>
+                <strong>Rebalanced:</strong> every quarter (or month), trade
+                back to the target mix — selling what went up, buying what
+                went down.
+              </li>
+              <li>
+                <strong>Why it can help:</strong> rebalancing keeps risk from
+                drifting up, and systematically sells high and buys low.
+                Sometimes that adds return; sometimes it just adds trading.
+              </li>
+              <li>
+                <strong>Turnover:</strong> how much of the portfolio had to be
+                traded to rebalance. Real trading costs would eat into the
+                rebalanced line, so the gap you see is a best case.
+              </li>
+              <li>
+                <strong>The table:</strong> Final $1 is what a dollar became;
+                CAGR is the yearly growth rate; Sharpe is return per unit of
+                risk; Max drawdown is the worst fall from a peak.
+              </li>
+            </ul>
+          </div>
         </>
       )}
     </div>

@@ -61,6 +61,16 @@ export default function App() {
           <p className="subtitle">
             Markowitz mean-variance optimization on real market data.
           </p>
+
+          <p className="intro">
+            Pick a few tickers, and this app finds the mix of them with the best
+            return for its risk — the mean-variance math from portfolio theory,
+            run on real market prices. <strong>How to use it:</strong> 1) type
+            tickers on the left, 2) click Run optimization, 3) explore the three
+            tabs — Frontier for the big picture, Portfolio for the exact mix,
+            Rebalance for whether rebalancing actually helps.
+          </p>
+
         </div>
       </header>
 
@@ -111,7 +121,7 @@ export default function App() {
       </div>
 
       <footer className="footer">
-        React + Spring Boot + Python quant service · data: Yahoo Finance Prathamesh
+        React + Spring Boot + Python quant service · data: Yahoo Finance
       </footer>
     </div>
   );
