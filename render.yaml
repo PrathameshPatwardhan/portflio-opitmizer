@@ -1,19 +1,19 @@
 services:
   - type: web
-    name: portfolio-quant
+    name: pmp-portfolio-quant
     env: docker
     dockerfilePath: ./quant-service/Dockerfile
     plan: free
     healthCheckPath: /health
 
   - type: web
-    name: portfolio-backend
+    name: pmp-portfolio-backend
     env: docker
     dockerfilePath: ./backend/Dockerfile
     plan: free
     healthCheckPath: /api/health
     envVars:
       - key: QUANT_SERVICE_URL
-        value: https://portfolio-quant.onrender.com
+        value: https://pmp-portfolio-quant.onrender.com
       - key: FRONTEND_ORIGIN
-        value: https://portflio-opitmizer-e1n4.vercel.app/
+        value: https://portflio-opitmizer-e1n4.vercel.app
