@@ -35,9 +35,6 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
         const t = customTicker.trim().toUpperCase();
         if (!t || selected.includes(t)) {
             setCustomTicker("");
-            addUniverseTicker(t, v.name)
-                .then(() => onSearchUniverse(tickerQuery.trim() || undefined))
-                .catch(() => {});
             return;
         }
         setCustomError("");
@@ -51,6 +48,9 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
             setInputs({ ...inputs, tickers: [...selected, t] });
             setCustomTickers([...customTickers, t]);
             setCustomTicker("");
+            addUniverseTicker(t, v.name)
+                .then(() => onSearchUniverse(tickerQuery.trim() || undefined))
+                .catch(() => {});
         } catch (e) {
             setCustomError("Couldn't verify the ticker right now — try again.");
         } finally {
