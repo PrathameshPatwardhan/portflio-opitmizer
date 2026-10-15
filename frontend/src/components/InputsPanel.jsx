@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { validateUniverseTicker } from "../api.js";
+import { validateUniverseTicker, addUniverseTicker } from "../api.js";
 
 export default function InputsPanel({ inputs, setInputs, onRun, loading, universeData, onSearchUniverse }) {
     const set = (key) => (e) => {
@@ -35,6 +35,9 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
         const t = customTicker.trim().toUpperCase();
         if (!t || selected.includes(t)) {
             setCustomTicker("");
+            addUniverseTicker(t, v.name)
+                .then(() => onSearchUniverse(tickerQuery.trim() || undefined))
+                .catch(() => {});
             return;
         }
         setCustomError("");

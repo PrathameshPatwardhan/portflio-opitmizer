@@ -72,6 +72,22 @@ public class QuantServiceClient {
                 Map.class);
     }
 
+    /** Register a custom ticker in the MySQL universe (no price fetch). No cache: writes must not serve stale. */
+    public Map<String, Object> universeAdd(Map<String, Object> req) {
+        try {
+            return webClient.post().uri("/universe").bodyValue(req)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block(TIMEOUT);
+        } catch (WebClientResponseException e) {
+            throw new ResponseStatusException(
+                    e.getStatusCode(), e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "quant service unavailable", e);
+        }
+    }
+
     /** The most recent ingest run, or {"lastIngest": null}. */
     public Map<String, Object> ingestLast() {
         return get("/ingest/last", Map.class);

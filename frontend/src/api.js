@@ -45,6 +45,7 @@ export const optimize = (body) => postJson("/optimize", body);
 export const optimizeTarget = (body) => postJson("/optimize/target", body);
 export const validateUniverseTicker = (ticker) =>
     getJson(`/universe/validate?ticker=${encodeURIComponent(ticker)}`);
+export const addUniverseTicker = (ticker, name) => postJson("/universe", { ticker, name });
 
 
 export function rebalance(inputs, frequency) {

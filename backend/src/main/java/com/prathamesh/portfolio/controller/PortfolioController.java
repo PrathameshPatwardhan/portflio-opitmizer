@@ -53,6 +53,12 @@ public class PortfolioController {
         return quant.validateTicker(ticker);
     }
 
+    /** Register a custom ticker in the MySQL universe (no price fetch). */
+    @PostMapping("/universe")
+    public Map<String, Object> universeAdd(@RequestBody Map<String, Object> req) {
+        return quant.universeAdd(req);
+    }
+
     @GetMapping("/ingest/last")
     public Map<String, Object> ingestLast() {
         return quant.ingestLast();

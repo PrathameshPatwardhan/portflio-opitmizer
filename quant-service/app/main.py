@@ -75,6 +75,10 @@ class IngestRequest(BaseModel):
     tickers: list[str] = Field(default_factory=list)  # empty = full universe
     period: str = "5y"
 
+class UniverseAddRequest(BaseModel):
+    ticker: str
+    name: str | None = None
+
 
 # ----------------------------------------------------------------------------
 # Shared helpers
@@ -310,6 +314,19 @@ def universe_validate(ticker: str) -> dict:
     if err == "unknown":
         return {"ticker": t, "status": "unknown"}
     return {"ticker": t, "status": "ok", "name": name}
+
+@app.post("/universe", status_code=201)
+def universe_add(req: UniverseAddRequest) -> dict:
+    """Register a custom ticker in the companies table (no price fetch)."""
+    ticker = req.ticker.strip().upper()
+    if not ticker:
+        raise HTTPException(422, detail="ticker is required")
+    name = (req.name or "").strip() or ticker
+    try:
+        upsert_company(ticker, name, "—", "")
+        return {"ticker": ticker, "name": name}
+    except StoreUnavailable as e:
+        raise HTTPException(503, detail=str(e))
 
 @app.get("/ingest/last")
 def ingest_last() -> dict:
