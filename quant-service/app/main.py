@@ -253,7 +253,11 @@ def _yahoo_ticker_meta(ticker: str, timeout: int = 10) -> tuple[str | None, str 
             results = (r.json().get("chart") or {}).get("result")
             if not results:
                 return None, "not-found"
-            meta = results[0].get("meta") or {}
+            res = results[0]
+            # Symbols like DJI return a meta shell with no price timestamps — not tradable
+            if not res.get("timestamp"):
+                return None, "not-found"
+            meta = res.get("meta") or {}
             return meta.get("longName") or meta.get("shortName") or ticker, None
         if r.status_code in (429, 401, 403):
             return None, "unknown"
@@ -310,7 +314,8 @@ def universe_validate(ticker: str) -> dict:
     if err == "not-found":
         return {"ticker": t, "status": "invalid",
                 "message": f"No market data for {t} on Yahoo Finance. "
-                           f"Non-US stocks need an exchange suffix — e.g. RELIANCE.NS for NSE India."}
+                           f"Check the symbol — non-US stocks need an exchange suffix "
+                           f"(e.g. RELIANCE.NS), indices need a ^ prefix (e.g. ^DJI)."}
     if err == "unknown":
         return {"ticker": t, "status": "unknown"}
     return {"ticker": t, "status": "ok", "name": name}
