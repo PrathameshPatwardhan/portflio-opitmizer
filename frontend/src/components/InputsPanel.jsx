@@ -117,6 +117,9 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                                 }}
                             />
                             <div
+                                onKeyDown={(e) => {
+                                    if (e.key === "Escape") { setTickersOpen(false); setTickerQuery(""); }
+                                }}
                                 style={{
                                     position: "absolute", zIndex: 10, left: 0, right: 0,
                                     maxHeight: "260px", overflowY: "auto", background: "#fff",
@@ -124,7 +127,8 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                                     marginTop: "4px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
                                 }}
                             >
-                                <div style={{ padding: "6px", position: "sticky", top: 0, background: "#fff" }}>
+
+                            <div style={{ padding: "6px", position: "sticky", top: 0, background: "#fff" }}>
                                     <input
                                         type="text"
                                         autoFocus
