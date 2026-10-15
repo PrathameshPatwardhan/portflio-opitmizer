@@ -27,6 +27,9 @@ from .store import (
     db_available,
     get_last_ingest,
     get_prices as db_get_prices,
+    log_ingest_run,
+    search_universe,
+    upsert_company,
     get_universe,
     init_db,
     log_ingest_run,
@@ -241,8 +244,14 @@ def _safe_last_ingest() -> dict | None:
 
 
 @app.get("/universe")
-def universe() -> dict:
-    """Ticker list for the dropdown: Yahoo-first, SQL fallback."""
+def universe(q: str | None = None) -> dict:
+    """Ticker list for the dropdown: Yahoo-first, SQL fallback. ?q= filters server-side."""
+    if q and q.strip():
+        try:
+            return {"companies": search_universe(q.strip(), limit=50),
+                    "lastIngest": _safe_last_ingest(), "source": "sql"}
+        except StoreUnavailable as e:
+            raise HTTPException(503, detail=str(e))
     seed = list(SEED_UNIVERSE)
     if _yahoo_reachable():
         for c in seed:

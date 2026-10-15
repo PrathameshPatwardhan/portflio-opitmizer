@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import InputsPanel from "./components/InputsPanel.jsx";
 import FrontierView from "./components/FrontierView.jsx";
 import PortfolioView from "./components/PortfolioView.jsx";
 import RebalanceView from "./components/RebalanceView.jsx";
 import { buildOptimizeBody, optimize, rebalance, universe } from "./api.js";
-
 const DEFAULTS = {
   tickers: "SPY, QQQ, GLD, TLT, EEM",
   period: "5y",
@@ -33,8 +32,13 @@ export default function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMsg, setRefreshMsg] = useState("");
 
-  useEffect(() => {
-    universe().then(setUniverseData).catch(() => {});
+
+  const universeSeq = useRef(0);
+  const searchUniverse = useCallback((q) => {
+    const seq = ++universeSeq.current;
+    universe(q)
+        .then((d) => { if (seq === universeSeq.current) setUniverseData(d); })
+        .catch(() => {});
   }, []);
 
   async function runOptimize() {
@@ -122,6 +126,7 @@ export default function App() {
               onRun={runOptimize}
               loading={loading}
               universeData={universeData}
+              onSearchUniverse={searchUniverse}
               onRefresh={runRefresh}
               refreshing={refreshing}
               refreshMsg={refreshMsg}

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function InputsPanel({ inputs, setInputs, onRun, loading, universeData }) {
+export default function InputsPanel({ inputs, setInputs, onRun, loading, universeData, onSearchUniverse }) {
     const set = (key) => (e) => {
         const v = e.target.type === "checkbox" ? e.target.checked : e.target.value;
         setInputs({ ...inputs, [key]: v });
@@ -11,15 +11,11 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
     const companies = universeData?.companies || [];
     const selected = Array.isArray(inputs.tickers) ? inputs.tickers : [];
 
-    const query = tickerQuery.trim().toLowerCase();
-    const filteredCompanies = query
-        ? companies.filter(
-            (c) =>
-                c.ticker.toLowerCase().includes(query) ||
-                (c.name || "").toLowerCase().includes(query)
-        )
-        : companies;
-
+    useEffect(() => {
+        const q = tickerQuery.trim();
+        const t = setTimeout(() => onSearchUniverse(q || undefined), q ? 250 : 0);
+        return () => clearTimeout(t);
+    }, [tickerQuery, onSearchUniverse]);
 
     const toggleTicker = (ticker) => {
         setInputs({
@@ -33,7 +29,6 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
     return (
         <aside className="panel">
             <h2>Inputs</h2>
-
 
             <div className="field">
                 <span>Tickers</span>
@@ -83,7 +78,7 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                                         }}
                                     />
                                 </div>
-                                {filteredCompanies.map((c) => (
+                                {companies.map((c) => (
                                     <label
                                         key={c.ticker}
                                         style={{
@@ -104,12 +99,9 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                                 ))}
                                 {companies.length === 0 && (
                                     <div className="muted" style={{ padding: "8px 10px" }}>
-                                        Loading tickers…
-                                    </div>
-                                )}
-                                {companies.length > 0 && filteredCompanies.length === 0 && (
-                                    <div className="muted" style={{ padding: "8px 10px" }}>
-                                        No tickers match "{tickerQuery}".
+                                        {tickerQuery.trim()
+                                            ? `No tickers match "${tickerQuery.trim()}".`
+                                            : "Loading tickers…"}
                                     </div>
                                 )}
                             </div>

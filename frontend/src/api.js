@@ -57,7 +57,7 @@ export function rebalance(inputs, frequency) {
   });
 }
 
-export const universe = () => getJson("/universe");
+export const universe = (q) => getJson(q ? `/universe?q=${encodeURIComponent(q)}` : "/universe");
 
 export async function health() {
   const res = await fetch(`${BASE}/api/health`);

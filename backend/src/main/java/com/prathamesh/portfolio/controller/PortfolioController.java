@@ -8,11 +8,7 @@ import com.prathamesh.portfolio.dto.RebalanceResponse;
 import com.prathamesh.portfolio.dto.TargetOptimizeRequest;
 import com.prathamesh.portfolio.service.QuantServiceClient;
 import java.util.Map;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
@@ -45,11 +41,12 @@ public class PortfolioController {
         return quant.ingest(req);
     }
 
-    /** The curated MySQL universe with per-ticker coverage. */
+    /** The curated MySQL universe with per-ticker coverage. Optional ?q= server-side search. */
     @GetMapping("/universe")
-    public Map<String, Object> universe() {
-        return quant.universe();
+    public Map<String, Object> universe(@RequestParam(required = false) String q) {
+        return quant.universe(q);
     }
+
 
     @GetMapping("/ingest/last")
     public Map<String, Object> ingestLast() {

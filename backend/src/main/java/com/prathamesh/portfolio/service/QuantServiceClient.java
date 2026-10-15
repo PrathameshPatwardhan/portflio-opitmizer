@@ -7,6 +7,8 @@ import com.prathamesh.portfolio.dto.PortfolioResult;
 import com.prathamesh.portfolio.dto.RebalanceRequest;
 import com.prathamesh.portfolio.dto.RebalanceResponse;
 import com.prathamesh.portfolio.dto.TargetOptimizeRequest;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 import org.springframework.stereotype.Service;
@@ -57,9 +59,11 @@ public class QuantServiceClient {
         }
     }
 
-    /** The curated MySQL universe with per-ticker coverage. */
-    public Map<String, Object> universe() {
-        return get("/universe", Map.class);
+    /** The curated MySQL universe with per-ticker coverage. q filters server-side. */
+    public Map<String, Object> universe(String q) {
+        String path = (q == null || q.isBlank()) ? "/universe"
+                : "/universe?q=" + URLEncoder.encode(q, StandardCharsets.UTF_8);
+        return get(path, Map.class);
     }
 
     /** The most recent ingest run, or {"lastIngest": null}. */

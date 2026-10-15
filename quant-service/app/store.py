@@ -176,12 +176,22 @@ def get_prices(tickers: list[str]) -> pd.DataFrame:
     return pd.DataFrame(out).sort_index()
 
 
-def get_universe() -> list[dict]:
-    """Per-ticker coverage: rows, first/last date (None when no rows)."""
+def search_universe(query: str, limit: int = 50) -> list[dict]:
+    """Per-ticker coverage filtered by ticker/name substring (case-insensitive)."""
     sess = _session()
     try:
+        q = query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        like = f"%{q}%"
+        companies = (
+            sess.query(Company)
+            .filter((Company.ticker.ilike(like, escape="\\")) |
+                    (Company.name.ilike(like, escape="\\")))
+            .order_by(Company.ticker)
+            .limit(limit)
+            .all()
+        )
         result = []
-        for c in sess.query(Company).order_by(Company.ticker).all():
+        for c in companies:
             rows, start, end = sess.query(
                 func.count(Price.date), func.min(Price.date), func.max(Price.date)
             ).filter(Price.ticker == c.ticker).one()
@@ -194,7 +204,6 @@ def get_universe() -> list[dict]:
         return result
     finally:
         sess.close()
-
 
 def log_ingest_run(tickers: list[str], rows_upserted: int, status: str = "ok") -> None:
     sess = _session()
