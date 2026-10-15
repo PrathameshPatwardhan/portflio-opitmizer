@@ -7,6 +7,7 @@ and a `source` toggle (mysql | live | auto) on the optimize endpoints.
 from __future__ import annotations
 
 import numpy as np
+import requests
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
@@ -204,20 +205,62 @@ def ingest(req: IngestRequest) -> dict:
                 continue
             total += upsert_prices(t, bars)
             ok.append(t)
-        for c in SEED_UNIVERSE:
-            if c["ticker"] in ok:
-                upsert_company(c["ticker"], c["name"], c["sector"], c["exchange"])
+        for t in ok:
+            meta = next((c for c in SEED_UNIVERSE if c["ticker"] == t), None)
+            if meta:
+                upsert_company(t, meta["name"], meta["sector"], meta["exchange"])
+            else:
+                upsert_company(t, t, "—", "")
+
         log_ingest_run(ok, total, status="ok" if not failed else "partial")
     except StoreUnavailable as e:
         raise HTTPException(503, detail=str(e))
     return {"tickers": ok, "failed": failed, "rowsUpserted": total}
 
 
+def _yahoo_reachable(timeout: int = 10) -> bool:
+    """Lightweight Yahoo reachability probe (single chart request)."""
+    try:
+        r = requests.get(
+            "https://query1.finance.yahoo.com/v8/finance/chart/SPY",
+            params={"interval": "1d", "range": "5d"},
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=timeout,
+        )
+        return r.status_code == 200
+    except Exception:
+        return False
+
+
+def _safe_last_ingest() -> dict | None:
+    try:
+        return get_last_ingest()
+    except StoreUnavailable:
+        return None
+
+
+
 @app.get("/universe")
 def universe() -> dict:
-    """The curated company universe with per-ticker data coverage."""
+    """Ticker list for the dropdown: Yahoo-first, SQL fallback."""
+    seed = list(SEED_UNIVERSE)
+    if _yahoo_reachable():
+        for c in seed:
+            try:
+                upsert_company(c["ticker"], c["name"], c.get("sector", "—"), c.get("exchange", ""))
+            except StoreUnavailable:
+                break
+        try:
+            companies = get_universe()
+        except StoreUnavailable:
+            companies = [
+                {"ticker": c["ticker"], "name": c["name"], "sector": c.get("sector", "—"),
+                 "rows": 0, "startDate": None, "endDate": None}
+                for c in seed
+            ]
+        return {"companies": companies, "lastIngest": _safe_last_ingest(), "source": "yahoo"}
     try:
-        return {"companies": get_universe(), "lastIngest": get_last_ingest()}
+        return {"companies": get_universe(), "lastIngest": get_last_ingest(), "source": "sql"}
     except StoreUnavailable as e:
         raise HTTPException(503, detail=str(e))
 

@@ -1,32 +1,92 @@
-export default function InputsPanel({
-                                        inputs,
-                                        setInputs,
-                                        onRun,
-                                        loading,
-                                        universeData,
-                                        onRefresh,
-                                        refreshing,
-                                        refreshMsg,
-                                    }) {
+import { useState } from "react";
+
+export default function InputsPanel({ inputs, setInputs, onRun, loading, universeData }) {
     const set = (key) => (e) => {
         const v = e.target.type === "checkbox" ? e.target.checked : e.target.value;
         setInputs({ ...inputs, [key]: v });
     };
 
-    const lastIngest = universeData?.lastIngest;
+    const [tickersOpen, setTickersOpen] = useState(false);
+    const companies = universeData?.companies || [];
+    const selected = Array.isArray(inputs.tickers) ? inputs.tickers : [];
+
+    const toggleTicker = (ticker) => {
+        setInputs({
+            ...inputs,
+            tickers: selected.includes(ticker)
+                ? selected.filter((t) => t !== ticker)
+                : [...selected, ticker],
+        });
+    };
 
     return (
         <aside className="panel">
             <h2>Inputs</h2>
 
             <label className="field">
-                <span>Tickers (comma separated)</span>
-                <input
-                    type="text"
-                    value={inputs.tickers}
-                    onChange={set("tickers")}
-                    placeholder="SPY, QQQ, GLD, TLT, EEM"
-                />
+                <span>Tickers</span>
+                <div style={{ position: "relative" }}>
+                    <button
+                        type="button"
+                        onClick={() => setTickersOpen((o) => !o)}
+                        style={{
+                            width: "100%", textAlign: "left", padding: "8px 10px",
+                            border: "1px solid #cbd5e1", borderRadius: "6px",
+                            background: "#fff", cursor: "pointer", fontSize: "14px",
+                        }}
+                    >
+                        {selected.length === 0 ? "Select tickers…" : selected.join(", ")}
+                    </button>
+                    {tickersOpen && (
+                        <>
+                            <div
+                                style={{ position: "fixed", inset: 0, zIndex: 5 }}
+                                onClick={() => setTickersOpen(false)}
+                            />
+                            <div
+                                style={{
+                                    position: "absolute", zIndex: 10, left: 0, right: 0,
+                                    maxHeight: "260px", overflowY: "auto", background: "#fff",
+                                    border: "1px solid #cbd5e1", borderRadius: "6px",
+                                    marginTop: "4px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                                }}
+                            >
+                                {companies.map((c) => (
+                                    <label
+                                        key={c.ticker}
+                                        style={{
+                                            display: "flex", gap: "8px", padding: "7px 10px",
+                                            cursor: "pointer", alignItems: "center", fontSize: "14px",
+                                        }}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selected.includes(c.ticker)}
+                                            onChange={() => toggleTicker(c.ticker)}
+                                        />
+                                        <span>
+                                            <strong>{c.ticker}</strong>
+                                            <span className="muted"> · {c.name}</span>
+                                            {c.rows > 0 && (
+                                                <span className="muted"> · {c.rows.toLocaleString()} rows</span>
+                                            )}
+                                        </span>
+                                    </label>
+                                ))}
+                                {companies.length === 0 && (
+                                    <div className="muted" style={{ padding: "8px 10px" }}>
+                                        Loading tickers…
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </div>
+                {universeData?.source && (
+                    <span className="muted" style={{ fontSize: "12px", marginTop: "4px" }}>
+                        List via {universeData.source === "yahoo" ? "Yahoo Finance" : "MySQL fallback"}
+                    </span>
+                )}
             </label>
 
             <label className="field">
@@ -87,25 +147,6 @@ export default function InputsPanel({
             <button className="primary" onClick={onRun} disabled={loading}>
                 {loading ? "Optimizing…" : "Run optimization"}
             </button>
-
-            <div className="market-data">
-                <h3>Market data</h3>
-                <p className="muted">
-                    {universeData
-                        ? `${universeData.companies.length} tickers stored in MySQL`
-                        : "MySQL status unknown"}
-                </p>
-                {lastIngest && (
-                    <p className="muted">
-                        Last refresh: {new Date(lastIngest.startedAt).toLocaleString()} (
-                        {Number(lastIngest.rowsUpserted).toLocaleString()} rows)
-                    </p>
-                )}
-                <button className="secondary" onClick={onRefresh} disabled={refreshing}>
-                    {refreshing ? "Refreshing… (takes 1–2 min)" : "Refresh market data"}
-                </button>
-                {refreshMsg && <p className="muted">{refreshMsg}</p>}
-            </div>
         </aside>
     );
 }

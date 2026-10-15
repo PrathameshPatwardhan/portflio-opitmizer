@@ -27,10 +27,10 @@ async function getJson(path) {
 /** Shape the sidebar inputs into the /optimize request body. */
 export function buildOptimizeBody(inputs) {
   return {
-    tickers: inputs.tickers
-        .split(",")
-        .map((t) => t.trim().toUpperCase())
-        .filter(Boolean),
+    tickers: (Array.isArray(inputs.tickers)
+            ? inputs.tickers
+            : inputs.tickers.split(",")
+    ).map((t) => t.trim().toUpperCase()).filter(Boolean),
     period: inputs.period,
     riskFreeRate: inputs.riskFreeRate / 100,
     longOnly: inputs.longOnly,
@@ -58,8 +58,6 @@ export function rebalance(inputs, frequency) {
 }
 
 export const universe = () => getJson("/universe");
-export const ingestLast = () => getJson("/ingest/last");
-export const ingest = (body = {}) => postJson("/ingest", body);
 
 export async function health() {
   const res = await fetch(`${BASE}/api/health`);
