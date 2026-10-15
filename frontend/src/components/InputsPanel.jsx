@@ -34,7 +34,8 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
         <aside className="panel">
             <h2>Inputs</h2>
 
-            <label className="field">
+
+            <div className="field">
                 <span>Tickers</span>
                 <div style={{ position: "relative" }}>
                     <button
@@ -120,7 +121,7 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                         List via {universeData.source === "yahoo" ? "Yahoo Finance" : "MySQL fallback"}
                     </span>
                 )}
-            </label>
+            </div>
 
             <label className="field">
                 <span>History</span>
