@@ -6,9 +6,20 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
         setInputs({ ...inputs, [key]: v });
     };
 
+    const [tickerQuery, setTickerQuery] = useState("");
     const [tickersOpen, setTickersOpen] = useState(false);
     const companies = universeData?.companies || [];
     const selected = Array.isArray(inputs.tickers) ? inputs.tickers : [];
+
+    const query = tickerQuery.trim().toLowerCase();
+    const filteredCompanies = query
+        ? companies.filter(
+            (c) =>
+                c.ticker.toLowerCase().includes(query) ||
+                (c.name || "").toLowerCase().includes(query)
+        )
+        : companies;
+
 
     const toggleTicker = (ticker) => {
         setInputs({
@@ -28,7 +39,10 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                 <div style={{ position: "relative" }}>
                     <button
                         type="button"
-                        onClick={() => setTickersOpen((o) => !o)}
+                        onClick={() => {
+                            setTickersOpen((o) => !o);
+                            setTickerQuery("");
+                        }}
                         style={{
                             width: "100%", textAlign: "left", padding: "8px 10px",
                             border: "1px solid #cbd5e1", borderRadius: "6px",
@@ -41,7 +55,10 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                         <>
                             <div
                                 style={{ position: "fixed", inset: 0, zIndex: 5 }}
-                                onClick={() => setTickersOpen(false)}
+                                onClick={() => {
+                                    setTickersOpen(false);
+                                    setTickerQuery("");
+                                }}
                             />
                             <div
                                 style={{
@@ -51,7 +68,21 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                                     marginTop: "4px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
                                 }}
                             >
-                                {companies.map((c) => (
+                                <div style={{ padding: "6px", position: "sticky", top: 0, background: "#fff" }}>
+                                    <input
+                                        type="text"
+                                        autoFocus
+                                        placeholder="Search tickers…"
+                                        value={tickerQuery}
+                                        onChange={(e) => setTickerQuery(e.target.value)}
+                                        style={{
+                                            width: "100%", padding: "7px 9px", fontSize: "14px",
+                                            border: "1px solid #cbd5e1", borderRadius: "6px",
+                                            boxSizing: "border-box",
+                                        }}
+                                    />
+                                </div>
+                                {filteredCompanies.map((c) => (
                                     <label
                                         key={c.ticker}
                                         style={{
@@ -66,16 +97,18 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                                         />
                                         <span>
                                             <strong>{c.ticker}</strong>
-                                            <span className="muted"> · {c.name}</span>
-                                            {c.rows > 0 && (
-                                                <span className="muted"> · {c.rows.toLocaleString()} rows</span>
-                                            )}
+                                                <span className="muted"> · {c.name}</span>
                                         </span>
                                     </label>
                                 ))}
                                 {companies.length === 0 && (
                                     <div className="muted" style={{ padding: "8px 10px" }}>
                                         Loading tickers…
+                                    </div>
+                                )}
+                                {companies.length > 0 && filteredCompanies.length === 0 && (
+                                    <div className="muted" style={{ padding: "8px 10px" }}>
+                                        No tickers match "{tickerQuery}".
                                     </div>
                                 )}
                             </div>

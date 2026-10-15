@@ -3,7 +3,7 @@ import InputsPanel from "./components/InputsPanel.jsx";
 import FrontierView from "./components/FrontierView.jsx";
 import PortfolioView from "./components/PortfolioView.jsx";
 import RebalanceView from "./components/RebalanceView.jsx";
-import { buildOptimizeBody, ingest, optimize, rebalance, universe } from "./api.js";
+import { buildOptimizeBody, optimize, rebalance, universe } from "./api.js";
 
 const DEFAULTS = {
   tickers: "SPY, QQQ, GLD, TLT, EEM",
