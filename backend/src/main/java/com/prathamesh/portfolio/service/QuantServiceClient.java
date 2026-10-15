@@ -66,6 +66,12 @@ public class QuantServiceClient {
         return get(path, Map.class);
     }
 
+    /** Pre-check a custom ticker against Yahoo Finance (always 200 with a status field). */
+    public Map<String, Object> validateTicker(String ticker) {
+        return get("/universe/validate?ticker=" + URLEncoder.encode(ticker, StandardCharsets.UTF_8),
+                Map.class);
+    }
+
     /** The most recent ingest run, or {"lastIngest": null}. */
     public Map<String, Object> ingestLast() {
         return get("/ingest/last", Map.class);

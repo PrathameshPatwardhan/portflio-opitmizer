@@ -41,12 +41,17 @@ public class PortfolioController {
         return quant.ingest(req);
     }
 
-    /** The curated MySQL universe with per-ticker coverage. Optional ?q= server-side search. */
+    /** The curated MySQL verse with per-ticker coverage. Optional ?q= server-side search. */
     @GetMapping("/universe")
     public Map<String, Object> universe(@RequestParam(required = false) String q) {
         return quant.universe(q);
     }
 
+    /** Pre-check a custom ticker against Yahoo Finance. */
+    @GetMapping("/universe/validate")
+    public Map<String, Object> validateTicker(@RequestParam String ticker) {
+        return quant.validateTicker(ticker);
+    }
 
     @GetMapping("/ingest/last")
     public Map<String, Object> ingestLast() {

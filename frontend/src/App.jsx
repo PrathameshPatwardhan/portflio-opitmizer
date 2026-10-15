@@ -5,7 +5,7 @@ import PortfolioView from "./components/PortfolioView.jsx";
 import RebalanceView from "./components/RebalanceView.jsx";
 import { buildOptimizeBody, optimize, rebalance, universe } from "./api.js";
 const DEFAULTS = {
-  tickers: "SPY, QQQ, GLD, TLT, EEM",
+  tickers: [],
   period: "5y",
   riskFreeRate: 4.0,
   longOnly: true,
@@ -42,10 +42,15 @@ export default function App() {
   }, []);
 
   async function runOptimize() {
+    const body = buildOptimizeBody(inputs);
+    if (body.tickers.length === 0) {
+      setError("Select at least one ticker first.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      setOptResult(await optimize(buildOptimizeBody(inputs)));
+      setOptResult(await optimize(body));
     } catch (e) {
       setError(e.message);
     } finally {
@@ -166,7 +171,7 @@ export default function App() {
                       setFrequency={setRebFreq}
                       onRun={runRebalance}
                       loading={rebLoading}
-                      hasInputs={inputs.tickers.trim().length > 0}
+                      hasInputs={inputs.tickers.length > 0}
                   />
               )}
             </section>

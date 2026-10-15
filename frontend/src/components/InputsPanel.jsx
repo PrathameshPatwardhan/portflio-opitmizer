@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { validateUniverseTicker } from "../api.js";
 
 export default function InputsPanel({ inputs, setInputs, onRun, loading, universeData, onSearchUniverse }) {
     const set = (key) => (e) => {
@@ -8,6 +9,10 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
 
     const [tickerQuery, setTickerQuery] = useState("");
     const [tickersOpen, setTickersOpen] = useState(false);
+    const [customTicker, setCustomTicker] = useState("");
+    const [customTickers, setCustomTickers] = useState([]);
+    const [customError, setCustomError] = useState("");
+    const [validating, setValidating] = useState(false);
     const companies = universeData?.companies || [];
     const selected = Array.isArray(inputs.tickers) ? inputs.tickers : [];
 
@@ -25,6 +30,36 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                 : [...selected, ticker],
         });
     };
+
+    const addCustomTicker = async () => {
+        const t = customTicker.trim().toUpperCase();
+        if (!t || selected.includes(t)) {
+            setCustomTicker("");
+            return;
+        }
+        setCustomError("");
+        setValidating(true);
+        try {
+            const v = await validateUniverseTicker(t);
+            if (v.status === "invalid") {
+                setCustomError(v.message || `No market data for ${t} on Yahoo Finance.`);
+                return;
+            }
+            setInputs({ ...inputs, tickers: [...selected, t] });
+            setCustomTickers([...customTickers, t]);
+            setCustomTicker("");
+        } catch (e) {
+            setCustomError("Couldn't verify the ticker right now — try again.");
+        } finally {
+            setValidating(false);
+        }
+    };
+
+    const removeCustomTicker = (t) => {
+        setInputs({ ...inputs, tickers: selected.filter((x) => x !== t) });
+        setCustomTickers(customTickers.filter((x) => x !== t));
+    };
+
 
     return (
         <aside className="panel">
@@ -108,6 +143,59 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                         </>
                     )}
                 </div>
+                <div style={{ display: "flex", gap: "6px", marginTop: "6px" }}>
+                    <input
+                        type="text"
+                        placeholder="Custom ticker…"
+                        value={customTicker}
+                        onChange={(e) => { setCustomTicker(e.target.value.toUpperCase()); setCustomError(""); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomTicker(); } }}
+                        style={{
+                            flex: 1, padding: "7px 9px", fontSize: "14px",
+                            border: "1px solid #cbd5e1", borderRadius: "6px",
+                        }}
+                    />
+                    <button
+                        type="button"
+                        onClick={addCustomTicker}
+                        disabled={validating}
+                        style={{
+                            padding: "7px 12px", fontSize: "14px", border: "1px solid #cbd5e1",
+                            borderRadius: "6px", background: "#f1f5f9", cursor: "pointer",
+                        }}
+                    >
+                        {validating ? "Checking…" : "Add"}
+                    </button>
+                </div>
+                {customError && (
+                    <div style={{ color: "#b91c1c", fontSize: "13px", marginTop: "6px" }}>
+                        {customError}
+                    </div>
+                )}
+                {customTickers.filter((t) => selected.includes(t)).length > 0 && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "6px" }}>
+                        {customTickers.filter((t) => selected.includes(t)).map((t) => (
+                            <span
+                                key={t}
+                                style={{
+                                    display: "inline-flex", alignItems: "center", gap: "4px",
+                                    padding: "3px 8px", fontSize: "13px", background: "#e0f2fe",
+                                    borderRadius: "999px",
+                                }}
+                            >
+                {t}
+                                <button
+                                    type="button"
+                                    onClick={() => removeCustomTicker(t)}
+                                    aria-label={`Remove ${t}`}
+                                    style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: "13px", padding: "0 2px" }}
+                                >
+                    ×
+                </button>
+            </span>
+                        ))}
+                    </div>
+                )}
                 {universeData?.source && (
                     <span className="muted" style={{ fontSize: "12px", marginTop: "4px" }}>
                         List via {universeData.source === "yahoo" ? "Yahoo Finance" : "MySQL fallback"}

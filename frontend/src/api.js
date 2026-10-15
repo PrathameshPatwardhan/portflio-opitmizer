@@ -43,6 +43,9 @@ export function buildOptimizeBody(inputs) {
 
 export const optimize = (body) => postJson("/optimize", body);
 export const optimizeTarget = (body) => postJson("/optimize/target", body);
+export const validateUniverseTicker = (ticker) =>
+    getJson(`/api/universe/validate?ticker=${encodeURIComponent(ticker)}`);
+
 
 export function rebalance(inputs, frequency) {
   const b = buildOptimizeBody(inputs);

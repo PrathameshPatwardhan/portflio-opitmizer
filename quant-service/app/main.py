@@ -234,6 +234,28 @@ def _yahoo_reachable(timeout: int = 10) -> bool:
     except Exception:
         return False
 
+def _yahoo_ticker_meta(ticker: str, timeout: int = 10) -> tuple[str | None, str | None]:
+    """(display name, error_kind) via Yahoo's chart API.
+    error_kind: None = data exists; 'not-found' = no such ticker;
+    'unknown' = the check itself failed (rate-limit/timeout)."""
+    try:
+        r = requests.get(
+            f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}",
+            params={"interval": "1d", "range": "5d"},
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=timeout,
+        )
+        if r.status_code == 200:
+            results = (r.json().get("chart") or {}).get("result")
+            if not results:
+                return None, "not-found"
+            meta = results[0].get("meta") or {}
+            return meta.get("longName") or meta.get("shortName") or ticker, None
+        if r.status_code in (429, 401, 403):
+            return None, "unknown"
+        return None, "not-found"
+    except Exception:
+        return None, "unknown"
 
 def _safe_last_ingest() -> dict | None:
     try:
@@ -273,6 +295,21 @@ def universe(q: str | None = None) -> dict:
     except StoreUnavailable as e:
         raise HTTPException(503, detail=str(e))
 
+@app.get("/universe/validate")
+def universe_validate(ticker: str) -> dict:
+    """Pre-check a custom ticker against Yahoo Finance. Always 200:
+    status is 'ok' | 'invalid' | 'unknown' (couldn't verify)."""
+    t = ticker.strip().upper()
+    if not t:
+        raise HTTPException(422, detail="ticker is required")
+    name, err = _yahoo_ticker_meta(t)
+    if err == "not-found":
+        return {"ticker": t, "status": "invalid",
+                "message": f"No market data for {t} on Yahoo Finance. "
+                           f"Non-US stocks need an exchange suffix — e.g. RELIANCE.NS for NSE India."}
+    if err == "unknown":
+        return {"ticker": t, "status": "unknown"}
+    return {"ticker": t, "status": "ok", "name": name}
 
 @app.get("/ingest/last")
 def ingest_last() -> dict:
