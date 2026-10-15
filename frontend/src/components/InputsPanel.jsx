@@ -62,6 +62,13 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
         setInputs({ ...inputs, tickers: selected.filter((x) => x !== t) });
         setCustomTickers(customTickers.filter((x) => x !== t));
     };
+    const clearTickers = () => {
+        setInputs({ ...inputs, tickers: [] });
+        setCustomTickers([]);
+        setCustomTicker("");
+        setCustomError("");
+    };
+
 
 
     return (
@@ -69,7 +76,22 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
             <h2>Inputs</h2>
 
             <div className="field">
-                <span>Tickers</span>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span>Tickers</span>
+                    {selected.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={clearTickers}
+                            style={{
+                                border: "none", background: "transparent", cursor: "pointer",
+                                fontSize: "13px", color: "#64748b", textDecoration: "underline", padding: 0,
+                            }}
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
+
                 <div style={{ position: "relative" }}>
                     <button
                         type="button"

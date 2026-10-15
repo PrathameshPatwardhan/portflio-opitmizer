@@ -43,8 +43,8 @@ export default function App() {
 
   async function runOptimize() {
     const body = buildOptimizeBody(inputs);
-    if (body.tickers.length === 0) {
-      setError("Select at least one ticker first.");
+    if (body.tickers.length < 2) {
+      setError("Select at least two tickers to run an optimization.");
       return;
     }
     setLoading(true);
