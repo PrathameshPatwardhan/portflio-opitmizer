@@ -175,6 +175,24 @@ def get_prices(tickers: list[str]) -> pd.DataFrame:
         return pd.DataFrame()
     return pd.DataFrame(out).sort_index()
 
+def get_universe() -> list[dict]:
+    """Per-ticker coverage: rows, first/last date (None when no rows)."""
+    sess = _session()
+    try:
+        result = []
+        for c in sess.query(Company).order_by(Company.ticker).all():
+            rows, start, end = sess.query(
+                func.count(Price.date), func.min(Price.date), func.max(Price.date)
+            ).filter(Price.ticker == c.ticker).one()
+            result.append({
+                "ticker": c.ticker, "name": c.name, "sector": c.sector,
+                "rows": int(rows),
+                "startDate": start.isoformat() if start else None,
+                "endDate": end.isoformat() if end else None,
+            })
+        return result
+    finally:
+        sess.close()
 
 def search_universe(query: str, limit: int = 50) -> list[dict]:
     """Per-ticker coverage filtered by ticker/name substring (case-insensitive)."""
