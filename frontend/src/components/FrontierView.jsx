@@ -124,7 +124,7 @@ export default function FrontierView({ data, theme }) {
               means less.
             </li>
             <li>
-              <strong>Black line &mdash; Efficient frontier:</strong> the best
+              <strong>Frontier line &mdash; Efficient frontier:</strong> the best
               return achievable at each risk level. Any dot below the line is a
               worse deal: same risk, less return.
             </li>

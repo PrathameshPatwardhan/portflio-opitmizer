@@ -95,6 +95,7 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                 <div style={{ position: "relative" }}>
                     <button
                         type="button"
+                        className="ticker-trigger"
                         onClick={() => {
                             setTickersOpen((o) => !o);
                             setTickerQuery("");
@@ -118,6 +119,7 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                                 }}
                             />
                             <div
+                                className="dropdown-pop"
                                 onKeyDown={(e) => {
                                     if (e.key === "Escape") { setTickersOpen(false); setTickerQuery(""); }
                                 }}
@@ -147,6 +149,7 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                                 {companies.map((c) => (
                                     <label
                                         key={c.ticker}
+                                        className="ticker-option"
                                         style={{
                                             display: "flex", gap: "8px", padding: "7px 10px",
                                             cursor: "pointer", alignItems: "center", fontSize: "14px",
@@ -210,6 +213,7 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                         {customTickers.filter((t) => selected.includes(t)).map((t) => (
                             <span
                                 key={t}
+                                className="chip"
                                 style={{
                                     display: "inline-flex", alignItems: "center", gap: "4px",
                                     padding: "3px 8px", fontSize: "13px", background: "var(--chip-bg)",
@@ -220,6 +224,7 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                 {t}
                                 <button
                                     type="button"
+                                    className="chip-remove"
                                     onClick={() => removeCustomTicker(t)}
                                     aria-label={`Remove ${t}`}
                                     style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: "13px", padding: "0 2px" }}
