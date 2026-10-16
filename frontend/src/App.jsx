@@ -32,6 +32,20 @@ export default function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMsg, setRefreshMsg] = useState("");
 
+  const [theme, setTheme] = useState(() => {
+    try {
+      const saved = localStorage.getItem("po-theme");
+      if (saved === "dark" || saved === "light") return saved;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    } catch {
+      return "light";
+    }
+  });
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem("po-theme", theme); } catch {}
+  }, [theme]);
+
 
   const universeSeq = useRef(0);
   const searchUniverse = useCallback((q) => {
@@ -93,13 +107,34 @@ export default function App() {
   return (
       <div className="app">
         <header className="header">
-          <div>
-            <h1>Portfolio Optimizer</h1>
-            <p className="subtitle">
-              Markowitz mean-variance optimization on real market data.
-            </p>
-            <div className="intro-card">
-              <p className="intro-text">
+          <div className="header-row">
+            <div>
+              <h1>Portfolio Optimizer</h1>
+              <p className="subtitle">
+                Markowitz mean-variance optimization on real market data.
+              </p>
+            </div>
+            <button
+                type="button"
+                className="theme-toggle"
+                onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+                aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+                title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+            >
+              {theme === "dark" ? (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="4" />
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+                  </svg>
+              ) : (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                  </svg>
+              )}
+            </button>
+          </div>
+          <div className="intro-card">
+          <p className="intro-text">
                 Pick a few tickers, and this app finds the mix of them with the
                 best return for its risk — the mean-variance math from portfolio
                 theory, run on real market prices.
@@ -119,7 +154,6 @@ export default function App() {
                 </li>
               </ol>
             </div>
-          </div>
         </header>
 
         {error && <div className="error">{error}</div>}
@@ -156,7 +190,7 @@ export default function App() {
             </nav>
 
             <section className="card">
-              {tab === "frontier" && <FrontierView data={optResult} />}
+              {tab === "frontier" && <FrontierView data={optResult} theme={theme} />}
               {tab === "portfolio" && (
                   <PortfolioView
                       optResult={optResult}

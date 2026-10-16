@@ -84,7 +84,7 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                             onClick={clearTickers}
                             style={{
                                 border: "none", background: "transparent", cursor: "pointer",
-                                fontSize: "13px", color: "#64748b", textDecoration: "underline", padding: 0,
+                                fontSize: "13px", color: "var(--muted)", textDecoration: "underline", padding: 0,
                             }}
                         >
                             Clear
@@ -101,8 +101,9 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                         }}
                         style={{
                             width: "100%", textAlign: "left", padding: "8px 10px",
-                            border: "1px solid #cbd5e1", borderRadius: "6px",
-                            background: "#fff", cursor: "pointer", fontSize: "14px",
+                            border: "1px solid var(--border)", borderRadius: "6px",
+                            background: "var(--card)", cursor: "pointer", fontSize: "14px",
+                            color: "var(--ink)",
                         }}
                     >
                         {selected.length === 0 ? "Select tickers…" : selected.join(", ")}
@@ -122,13 +123,13 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                                 }}
                                 style={{
                                     position: "absolute", zIndex: 10, left: 0, right: 0,
-                                    maxHeight: "260px", overflowY: "auto", background: "#fff",
-                                    border: "1px solid #cbd5e1", borderRadius: "6px",
+                                    maxHeight: "260px", overflowY: "auto", background: "var(--card)",
+                                    border: "1px solid var(--border)", borderRadius: "6px",
                                     marginTop: "4px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
                                 }}
                             >
 
-                            <div style={{ padding: "6px", position: "sticky", top: 0, background: "#fff" }}>
+                                <div style={{ padding: "6px", position: "sticky", top: 0, background: "var(--card)" }}>
                                     <input
                                         type="text"
                                         autoFocus
@@ -137,8 +138,9 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                                         onChange={(e) => setTickerQuery(e.target.value)}
                                         style={{
                                             width: "100%", padding: "7px 9px", fontSize: "14px",
-                                            border: "1px solid #cbd5e1", borderRadius: "6px",
+                                            border: "1px solid var(--border)", borderRadius: "6px",
                                             boxSizing: "border-box",
+                                            background: "var(--input-bg)", color: "var(--ink)",
                                         }}
                                     />
                                 </div>
@@ -181,7 +183,8 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                         onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomTicker(); } }}
                         style={{
                             flex: 1, padding: "7px 9px", fontSize: "14px",
-                            border: "1px solid #cbd5e1", borderRadius: "6px",
+                            background: "var(--input-bg)", color: "var(--ink)",
+                            border: "1px solid var(--border)", borderRadius: "6px",
                         }}
                     />
                     <button
@@ -189,15 +192,16 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                         onClick={addCustomTicker}
                         disabled={validating}
                         style={{
-                            padding: "7px 12px", fontSize: "14px", border: "1px solid #cbd5e1",
-                            borderRadius: "6px", background: "#f1f5f9", cursor: "pointer",
+                            padding: "7px 12px", fontSize: "14px", border: "1px solid var(--border)",
+                            borderRadius: "6px", background: "var(--surface-2)", cursor: "pointer",
+                            color: "var(--ink)",
                         }}
                     >
                         {validating ? "Checking…" : "Add"}
                     </button>
                 </div>
                 {customError && (
-                    <div style={{ color: "#b91c1c", fontSize: "13px", marginTop: "6px" }}>
+                    <div style={{ color: "var(--error-text)", fontSize: "13px", marginTop: "6px" }}>
                         {customError}
                     </div>
                 )}
@@ -208,7 +212,8 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                                 key={t}
                                 style={{
                                     display: "inline-flex", alignItems: "center", gap: "4px",
-                                    padding: "3px 8px", fontSize: "13px", background: "#e0f2fe",
+                                    padding: "3px 8px", fontSize: "13px", background: "var(--chip-bg)",
+                                    color: "var(--chip-ink)",
                                     borderRadius: "999px",
                                 }}
                             >
