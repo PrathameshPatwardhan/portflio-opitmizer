@@ -5,6 +5,7 @@ const pctFmt = { tickformat: ".0%" };
 
 export default function FrontierView({ data, theme }) {
   const dark = theme === "dark";
+  const accentLine = dark ? "#a5b4fc" : "#2563eb";
   const { traces, layout } = useMemo(() => {
     if (!data) return { traces: [], layout: {} };
     const { cloud, frontier, maxSharpe, minVol, assets } = data;
@@ -20,6 +21,7 @@ export default function FrontierView({ data, theme }) {
           color: cloud.sharpe,
           colorscale: "Viridis",
           size: 3,
+          opacity: 0.8,
           showscale: true,
           colorbar: { title: "Sharpe" },
         },
@@ -31,7 +33,18 @@ export default function FrontierView({ data, theme }) {
         mode: "lines",
         type: "scatter",
         name: "Efficient frontier",
-        line: { color: dark ? "#e9eef8" : "#111", width: 2 },
+        line: { color: accentLine, width: 9 },
+        opacity: 0.16,
+        hoverinfo: "skip",
+        showlegend: false,
+      },
+      {
+        x: frontier.map((p) => p.vol),
+        y: frontier.map((p) => p.ret),
+        mode: "lines",
+        type: "scatter",
+        name: "Efficient frontier",
+        line: { color: accentLine, width: 2.5 },
         hovertemplate: "Vol %{x:.1%} · Ret %{y:.1%}<extra></extra>",
       },
       {
@@ -69,9 +82,15 @@ export default function FrontierView({ data, theme }) {
     const layout = {
       paper_bgcolor: "rgba(0,0,0,0)",
       plot_bgcolor: "rgba(0,0,0,0)",
-      font: { color: dark ? "#e9eef8" : "#1a1d21" },
-      xaxis: { title: "Annualized volatility", ...pctFmt, gridcolor: grid, zerolinecolor: grid },
-      yaxis: { title: "Annualized return", ...pctFmt, gridcolor: grid, zerolinecolor: grid },
+      font: { color: dark ? "#e9eef8" : "#1a1d21", family: "'Inter', sans-serif" },
+      hovermode: "closest",
+      hoverlabel: {
+        bgcolor: dark ? "#1a2540" : "#ffffff",
+        bordercolor: dark ? "#2a3a5f" : "#e5e7eb",
+        font: { color: dark ? "#e9eef8" : "#1a1d21", size: 12, family: "'Inter', sans-serif" },
+      },
+      xaxis: { title: "Annualized volatility", ...pctFmt, gridcolor: grid, zeroline: false, linecolor: grid },
+      yaxis: { title: "Annualized return", ...pctFmt, gridcolor: grid, zeroline: false, linecolor: grid },
       legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "right", x: 1 },
       margin: { t: 40, r: 20, b: 50, l: 60 },
       height: 520,

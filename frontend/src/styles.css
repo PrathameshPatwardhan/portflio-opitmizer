@@ -232,3 +232,33 @@ button.secondary:active:not(:disabled) { transform: translateY(0); }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ================= Typography & chart polish ================= */
+:root {
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+body { font-family: var(--font-body); }
+.header h1 {
+  font-family: var(--font-display);
+  font-size: 38px;
+  letter-spacing: -0.03em;
+}
+.panel h2, .howto h3 { font-family: var(--font-display); letter-spacing: -0.01em; }
+.metric-value { font-family: var(--font-display); font-size: 22px; letter-spacing: -0.01em; }
+.tab { font-weight: 500; }
+button.primary { letter-spacing: 0.015em; }
+.step-num { font-family: var(--font-display); }
+
+/* Metric cards: gradient top-bar reveal on hover */
+.metric { position: relative; overflow: hidden; }
+.metric::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.metric:hover::before { opacity: 1; }
