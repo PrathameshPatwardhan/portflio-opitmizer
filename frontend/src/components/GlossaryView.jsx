@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 const TERMS = [
     {
         name: "Sharpe Ratio",
@@ -99,32 +101,106 @@ const TERMS = [
     },
 ];
 
+function TermBody({ t }) {
+    return (
+        <div style={{ padding: "2px 2px 18px" }}>
+            <p className="hint" style={{ margin: "0 0 8px" }}>{t.tag}</p>
+            <p style={{ margin: "0 0 12px", lineHeight: 1.6 }}>{t.text}</p>
+            {t.images.map((img) => (
+                <figure key={img.src} style={{ margin: "0 0 16px" }}>
+                    <img
+                        src={img.src}
+                        alt={img.caption}
+                        loading="lazy"
+                        style={{ maxWidth: "100%", height: "auto", borderRadius: 8, display: "block" }}
+                    />
+                    <figcaption className="hint" style={{ marginTop: 6 }}>
+                        {img.caption} — Source: {img.credit}
+                    </figcaption>
+                </figure>
+            ))}
+        </div>
+    );
+}
+
 export default function GlossaryView() {
+    const [query, setQuery] = useState("");
+    const [open, setOpen] = useState(TERMS[0].name);
+
+    const q = query.trim().toLowerCase();
+    const searching = q.length > 0;
+    const visible = searching
+        ? TERMS.filter((t) => `${t.name} ${t.text}`.toLowerCase().includes(q))
+        : TERMS;
+
     return (
         <div>
             <p className="hint" style={{ marginTop: 0 }}>
-                Finance terms, in plain English — for a smart reader with no finance background.
+                Finance terms, in plain English — tap a term to expand it.
             </p>
-            {TERMS.map((t) => (
-                <article key={t.name} style={{ marginBottom: 28 }}>
-                    <h3 style={{ margin: "0 0 4px" }}>{t.name}</h3>
-                    <p className="hint" style={{ margin: "0 0 8px" }}>{t.tag}</p>
-                    <p style={{ margin: "0 0 24px" }}>{t.text}</p>
-                    {t.images.map((img) => (
-                        <figure key={img.src} style={{ margin: "0 0 32px" }}>
-                            <img
-                                src={img.src}
-                                alt={img.caption}
-                                loading="lazy"
-                                style={{ maxWidth: "100%", borderRadius: 8 }}
-                            />
-                            <figcaption className="hint">
-                                {img.caption}
-                            </figcaption>
-                        </figure>
-                    ))}
-                </article>
-            ))}
+            <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search terms…"
+                aria-label="Search glossary terms"
+                style={{
+                    width: "100%",
+                    boxSizing: "border-box",
+                    padding: "12px 14px",
+                    marginBottom: 8,
+                    fontSize: 16, // 16px+ stops iOS zoom-on-focus
+                    color: "var(--ink)",
+                    background: "var(--input-bg)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                }}
+            />
+            {searching && (
+                <p className="hint" style={{ margin: "0 0 8px" }}>
+                    {visible.length === 0
+                        ? `No terms match "${query}".`
+                        : `${visible.length} term${visible.length === 1 ? "" : "s"} match${visible.length === 1 ? "es" : ""}.`}
+                </p>
+            )}
+            <div>
+                {visible.map((t) => {
+                    const isOpen = searching || open === t.name;
+                    return (
+                        <div key={t.name} style={{ borderBottom: "1px solid var(--border)" }}>
+                            <button
+                                type="button"
+                                onClick={() => !searching && setOpen(isOpen ? null : t.name)}
+                                aria-expanded={isOpen}
+                                style={{
+                                    width: "100%",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 12,
+                                    minHeight: 52, // comfortable thumb target
+                                    padding: "12px 2px",
+                                    background: "none",
+                                    border: "none",
+                                    cursor: searching ? "default" : "pointer",
+                                    color: "var(--ink)",
+                                    fontSize: 16,
+                                    fontWeight: 600,
+                                    textAlign: "left",
+                                }}
+                            >
+                                <span>{t.name}</span>
+                                {!searching && (
+                                    <span aria-hidden="true" style={{ color: "var(--muted)", fontSize: 20, lineHeight: 1 }}>
+                    {isOpen ? "−" : "+"}
+                  </span>
+                                )}
+                            </button>
+                            {isOpen && <TermBody t={t} />}
+                        </div>
+                    );
+                })}
+            </div>
         </div>
     );
 }
