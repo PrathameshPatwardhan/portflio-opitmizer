@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-from scipy.optimize import minimize
+from scipy.optimize import linprog, minimize
 
 TRADING_DAYS = 252
 
@@ -183,3 +183,58 @@ def track_record(equity: pd.Series, risk_free: float) -> dict[str, float]:
         "sharpe": sharpe,
         "maxDrawdown": max_dd,
     }
+
+def empirical_cvar(scenario_rets: np.ndarray, w: np.ndarray, alpha: float) -> float:
+    """Historical CVaR_alpha of the portfolio LOSS for weights w.
+
+    Mean loss over the worst (1 - alpha) fraction of scenarios.
+    Used for reporting/comparison; the optimizer below finds the true minimum.
+    """
+    losses = -(np.asarray(scenario_rets, dtype=float) @ np.asarray(w, dtype=float))
+    k = max(1, int(np.ceil((1.0 - alpha) * len(losses))))
+    return float(np.sort(losses)[-k:].mean())
+
+
+def cvar_portfolio(scenario_rets: np.ndarray, m: MarketInputs, alpha: float = 0.95,
+                   target_return: float | None = None) -> tuple[np.ndarray | None, float | None]:
+    """Minimum-CVaR portfolio via the Rockafellar-Uryasev (2000) LP.
+
+    scenario_rets: (T, n) historical returns, columns in m.tickers order.
+    Minimizes CVaR_alpha of the portfolio loss = mean loss in the worst
+    (1 - alpha) tail of scenarios. Unlike variance, this penalizes exactly the
+    outcomes investors fear: large left-tail losses.
+
+    Returns (weights, daily CVaR of loss), or (None, None) when infeasible.
+    """
+    R = np.asarray(scenario_rets, dtype=float)
+    T, n = R.shape
+    if T == 0 or n != len(m.tickers):
+        return None, None
+    # Decision variables: w_1..w_n, zeta (VaR proxy), u_1..u_T (tail excesses).
+    #   min  zeta + 1/((1-alpha)*T) * sum(u_t)
+    #   s.t. u_t >= -R_t.w - zeta   (loss beyond VaR)
+    #        u_t >= 0,  sum(w) = 1,  bounds on w,  optional w.mu >= target_return
+    nvar = n + 1 + T
+    c = np.zeros(nvar)
+    c[n] = 1.0
+    c[n + 1:] = 1.0 / ((1.0 - alpha) * T)
+    A_ub = np.zeros((T, nvar))
+    A_ub[:, :n] = -R
+    A_ub[:, n] = -1.0
+    A_ub[np.arange(T), n + 1 + np.arange(T)] = -1.0
+    b_ub = np.zeros(T)
+    if target_return is not None:
+        row = np.zeros(nvar)
+        row[:n] = -m.mu
+        A_ub = np.vstack([A_ub, row])
+        b_ub = np.append(b_ub, -target_return)
+    A_eq = np.zeros((1, nvar))
+    A_eq[0, :n] = 1.0
+    b_eq = np.ones(1)
+    bounds = _bounds(m) + [(None, None)] + [(0.0, None)] * T
+    res = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq,
+                  bounds=bounds, method="highs")
+    if not res.success:
+        return None, None
+    return res.x[:n], float(res.fun)
+
