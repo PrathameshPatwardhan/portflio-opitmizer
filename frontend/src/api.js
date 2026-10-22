@@ -49,6 +49,29 @@ async function deleteJson(path) {
   }
   return res.json();
 }
+async function toAuthError(res, fallback) {
+  let detail = '';
+  try {
+    const body = await res.json();
+    detail = body.message || '';
+  } catch { /* non-JSON body */ }
+  const err = new Error(detail || fallback);
+  err.status = res.status;
+  return err;
+}
+
+export async function login(email, password) {
+  const res = await fetch(`${API}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) throw await toAuthError(res, 'Login failed');
+  const data = await res.json();
+  localStorage.setItem('token', data.token);
+  return data;
+}
+
 
 /** Shape the sidebar inputs into the /optimize request body. */
 export function buildOptimizeBody(inputs) {
@@ -102,7 +125,6 @@ export async function health() {
 }
 
 export const signup = (email, password) => postJson("/auth/signup", { email, password });
-export const login = (email, password) => postJson("/auth/login", { email, password });
 export const me = () => getJson("/auth/me");
 
 export const listPortfolios = () => getJson("/portfolios");

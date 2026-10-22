@@ -9,6 +9,11 @@ export default function AuthScreen({ onBack }) {
     const [password, setPassword] = useState("");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
+    const friendlyAuthError = (e) => {
+        if (e.status === 401) return 'Invalid email or password. Double-check and try again, or create an account below.';
+        if (e.status === 409) return 'An account with this email already exists — try logging in instead.';
+        return 'Something went wrong. Please try again.';
+    };
 
     // As soon as auth succeeds, head back to the app.
     useEffect(() => {
@@ -23,7 +28,7 @@ export default function AuthScreen({ onBack }) {
             if (mode === "login") await login(email.trim(), password);
             else await signup(email.trim(), password);
         } catch (err) {
-            setError(friendlyError(err.message));
+            setError(friendlyAuthError(e));
         } finally {
             setBusy(false);
         }
