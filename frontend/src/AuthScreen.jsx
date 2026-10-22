@@ -28,7 +28,7 @@ export default function AuthScreen({ onBack }) {
             if (mode === "login") await login(email.trim(), password);
             else await signup(email.trim(), password);
         } catch (err) {
-            setError(friendlyAuthError(e));
+            setError(friendlyAuthError(err));
         } finally {
             setBusy(false);
         }
