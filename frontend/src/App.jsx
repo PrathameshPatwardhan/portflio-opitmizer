@@ -344,7 +344,7 @@ function App() {
         </div>
 
         <footer className="footer">
-          React + Spring Boot + Python quant service · data: Yahoo Finance, cached in MySQL
+          Passion Project
         </footer>
       </div>
   );

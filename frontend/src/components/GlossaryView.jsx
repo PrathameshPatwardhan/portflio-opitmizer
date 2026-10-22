@@ -109,9 +109,9 @@ export default function GlossaryView() {
                 <article key={t.name} style={{ marginBottom: 28 }}>
                     <h3 style={{ margin: "0 0 4px" }}>{t.name}</h3>
                     <p className="hint" style={{ margin: "0 0 8px" }}>{t.tag}</p>
-                    <p style={{ margin: "0 0 12px" }}>{t.text}</p>
+                    <p style={{ margin: "0 0 24px" }}>{t.text}</p>
                     {t.images.map((img) => (
-                        <figure key={img.src} style={{ margin: "0 0 16px" }}>
+                        <figure key={img.src} style={{ margin: "0 0 32px" }}>
                             <img
                                 src={img.src}
                                 alt={img.caption}
@@ -119,7 +119,7 @@ export default function GlossaryView() {
                                 style={{ maxWidth: "100%", borderRadius: 8 }}
                             />
                             <figcaption className="hint">
-                                {img.caption} — Source: {img.credit}
+                                {img.caption}
                             </figcaption>
                         </figure>
                     ))}
