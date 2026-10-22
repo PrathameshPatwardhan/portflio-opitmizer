@@ -4,6 +4,7 @@ import FrontierView from "./components/FrontierView.jsx";
 import PortfolioView from "./components/PortfolioView.jsx";
 import RebalanceView from "./components/RebalanceView.jsx";
 import CvarView from "./components/CvarView.jsx";
+import GlossaryView from "./components/GlossaryView.jsx";
 import { AuthProvider, useAuth } from "./AuthContext.jsx";
 import AuthScreen from "./AuthScreen.jsx";
 import SavedPortfolios from "./SavedPortfolios.jsx";
@@ -22,6 +23,7 @@ const TABS = [
   ["portfolio", "Portfolio"],
   ["rebalance", "Rebalance"],
   ["tailrisk", "Tail Risk"],
+  ["glossary", "Glossary"],
 ];
 
 function App() {
@@ -333,6 +335,7 @@ function App() {
                       hasInputs={inputs.tickers.length > 1}
                   />
               )}
+              {visibleTab === "glossary" && <GlossaryView />}
               {visibleTab === "saved" && user && (
                   <SavedPortfolios onLoad={handleLoadPortfolio} />
               )}
