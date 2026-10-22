@@ -14,7 +14,9 @@ from pydantic import BaseModel, Field
 from .data import annualize, fetch_bars, fetch_prices, log_returns
 from .quant import (
     MarketInputs,
+    cvar_portfolio,
     efficient_frontier,
+    empirical_cvar,
     max_sharpe_portfolio,
     min_vol_portfolio,
     portfolio_stats,
@@ -60,6 +62,8 @@ class OptimizeRequest(BaseModel):
 class TargetRequest(OptimizeRequest):
     targetReturn: float
 
+class CvarRequest(OptimizeRequest):
+    alpha: float = Field(default=0.95, ge=0.5, le=0.995)
 
 class RebalanceRequest(BaseModel):
     tickers: list[str]
@@ -395,6 +399,35 @@ def optimize_target(req: TargetRequest) -> dict:
     result = _portfolio_block(m, w, req.riskFreeRate)
     result["dataSource"] = data_source
     return result
+
+@app.post("/optimize/cvar")
+def optimize_cvar(req: CvarRequest) -> dict:
+    """Minimum-tail-risk portfolio: minimizes CVaR_alpha of the loss.
+
+    Scenarios are the historical daily log returns behind the current
+    tickers/period/source selection, so the tail being minimized is the
+    actual left tail this portfolio lived through.
+    """
+    m, prices, data_source = _market_inputs(req.tickers, req.period, req.longOnly, req.maxWeight, req.source)
+    R = log_returns(prices).dropna()[m.tickers].to_numpy()
+    w_cvar, _ = cvar_portfolio(R, m, alpha=req.alpha)
+    w_sharpe = max_sharpe_portfolio(m, req.riskFreeRate)
+    if w_cvar is None or w_sharpe is None:
+        raise HTTPException(
+            422, detail="Tail-risk optimization failed to converge — loosen the constraints."
+        )
+    # CVaR is positively homogeneous: annual CVaR = 252 x daily CVaR.
+    ann_cvar = lambda w: empirical_cvar(R, w, req.alpha) * 252.0
+    min_cvar = _portfolio_block(m, w_cvar, req.riskFreeRate)
+    min_cvar["cvar"] = ann_cvar(w_cvar)
+    max_sharpe = _portfolio_block(m, w_sharpe, req.riskFreeRate)
+    max_sharpe["cvar"] = ann_cvar(w_sharpe)
+    return {
+        "dataSource": data_source,
+        "alpha": req.alpha,
+        "minCvar": min_cvar,
+        "maxSharpe": max_sharpe,
+    }
 
 
 @app.post("/rebalance")

@@ -3,10 +3,11 @@ import InputsPanel from "./components/InputsPanel.jsx";
 import FrontierView from "./components/FrontierView.jsx";
 import PortfolioView from "./components/PortfolioView.jsx";
 import RebalanceView from "./components/RebalanceView.jsx";
+import CvarView from "./components/CvarView.jsx";
 import { AuthProvider, useAuth } from "./AuthContext.jsx";
 import AuthScreen from "./AuthScreen.jsx";
 import SavedPortfolios from "./SavedPortfolios.jsx";
-import { buildOptimizeBody, optimize, rebalance, universe, ingest, savePortfolio } from "./api.js";
+import { buildOptimizeBody, optimize, optimizeCvar, rebalance, universe, ingest, savePortfolio } from "./api.js";
 const DEFAULTS = {
   tickers: [],
   period: "5y",
@@ -20,6 +21,7 @@ const TABS = [
   ["frontier", "Frontier"],
   ["portfolio", "Portfolio"],
   ["rebalance", "Rebalance"],
+  ["tailrisk", "Tail Risk"],
 ];
 
 function App() {
@@ -32,6 +34,9 @@ function App() {
   const [rebFreq, setRebFreq] = useState("Q");
   const [rebResult, setRebResult] = useState(null);
   const [rebLoading, setRebLoading] = useState(false);
+  const [cvarResult, setCvarResult] = useState(null);
+  const [cvarLoading, setCvarLoading] = useState(false);
+  const [cvarAlpha, setCvarAlpha] = useState(0.95);
   const [universeData, setUniverseData] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMsg, setRefreshMsg] = useState("");
@@ -90,6 +95,24 @@ function App() {
     }
   }
 
+  async function runCvar() {
+    const body = buildOptimizeBody(inputs);
+    if (body.tickers.length < 2) {
+      setError("Select at least two tickers to run an optimization.");
+      return;
+    }
+    setCvarLoading(true);
+    setError("");
+    try {
+      setCvarResult(await optimizeCvar(inputs, cvarAlpha));
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCvarLoading(false);
+    }
+  }
+
+
   async function runRefresh() {
     setRefreshing(true);
     setRefreshMsg("");
@@ -145,7 +168,9 @@ function App() {
   }
 
   const activeSource =
-      tab === "rebalance" ? rebResult?.dataSource : optResult?.dataSource;
+      tab === "rebalance" ? rebResult?.dataSource
+          : tab === "tailrisk" ? cvarResult?.dataSource
+              : optResult?.dataSource;
 
   // The Saved tab only exists for logged-in users.
   const tabs = user ? [...TABS, ["saved", "Saved"]] : TABS;
@@ -296,6 +321,16 @@ function App() {
                       onRun={runRebalance}
                       loading={rebLoading}
                       hasInputs={inputs.tickers.length > 0}
+                  />
+              )}
+              {visibleTab === "tailrisk" && (
+                  <CvarView
+                      result={cvarResult}
+                      alpha={cvarAlpha}
+                      setAlpha={setCvarAlpha}
+                      onRun={runCvar}
+                      loading={cvarLoading}
+                      hasInputs={inputs.tickers.length > 1}
                   />
               )}
               {visibleTab === "saved" && user && (

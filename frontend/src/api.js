@@ -69,6 +69,9 @@ export function buildOptimizeBody(inputs) {
 
 export const optimize = (body) => postJson("/optimize", body);
 export const optimizeTarget = (body) => postJson("/optimize/target", body);
+export function optimizeCvar(inputs, alpha = 0.95) {
+  return postJson("/optimize/cvar", { ...buildOptimizeBody(inputs), alpha });
+}
 export const validateUniverseTicker = (ticker) =>
     getJson(`/universe/validate?ticker=${encodeURIComponent(ticker)}`);
 export const addUniverseTicker = (ticker, name) => postJson("/universe", { ticker, name });

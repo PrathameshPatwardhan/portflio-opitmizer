@@ -46,6 +46,12 @@ public class QuantServiceClient {
         return post("/rebalance", req, RebalanceResponse.class);
     }
 
+    /** Minimum-tail-risk (CVaR) portfolio. Body mirrors /optimize plus "alpha". */
+    public Map<String, Object> optimizeCvar(Map<String, Object> req) {
+        return post("/optimize/cvar", req, Map.class);
+    }
+
+
     /** Manual refresh: fetch fresh bars into MySQL. Body: {"tickers": [...], "period": "5y"}. */
     public Map<String, Object> ingest(Map<String, Object> req) {
         try {

@@ -35,6 +35,11 @@ public class PortfolioController {
         return quant.rebalance(req);
     }
 
+    @PostMapping("/optimize/cvar")
+    public Map<String, Object> optimizeCvar(@RequestBody Map<String, Object> req) {
+        return quant.optimizeCvar(req);
+    }
+
     /** Manual refresh: fetch fresh market data into MySQL. */
     @PostMapping("/ingest")
     public Map<String, Object> ingest(@RequestBody Map<String, Object> req) {
