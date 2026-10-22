@@ -262,3 +262,22 @@ button.primary { letter-spacing: 0.015em; }
   transition: opacity 0.2s ease;
 }
 .metric:hover::before { opacity: 1; }
+
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.auth-area { display: flex; align-items: center; gap: 10px; }
+.auth-email { font-size: 13px; color: var(--muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+button.auth-btn { margin-top: 0; padding: 8px 14px; width: auto; }
+
+.auth-wrap { max-width: 440px; margin: 56px auto; padding: 0 16px; }
+.auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 28px; box-shadow: var(--shadow-lg); }
+.auth-card h2 { font-family: var(--font-display); letter-spacing: -0.01em; margin: 0 0 6px; font-size: 22px; }
+.auth-card .field input[type="email"], .auth-card .field input[type="password"] {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+  border-radius: 6px; font-size: 14px; background: var(--input-bg); color: var(--ink);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.auth-card .field input[type="email"]:focus, .auth-card .field input[type="password"]:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring);
+}
+.auth-toggle { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 14px; padding: 0; }
+.auth-toggle:hover { text-decoration: underline; }
