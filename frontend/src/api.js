@@ -61,7 +61,7 @@ async function toAuthError(res, fallback) {
 }
 
 export async function login(email, password) {
-  const res = await fetch(`${BASE}/auth/login`, {
+  const res = await fetch(`${BASE}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
