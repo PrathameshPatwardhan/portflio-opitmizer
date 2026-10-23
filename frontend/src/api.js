@@ -130,3 +130,14 @@ export const me = () => getJson("/auth/me");
 export const listPortfolios = () => getJson("/portfolios");
 export const savePortfolio = (name, payload) => postJson("/portfolios", { name, payload });
 export const deletePortfolio = (id) => deleteJson(`/portfolios/${id}`);
+
+export const allocate = (tickers, weights, amount) =>
+    postJson("/allocate", { tickers, weights, amount });
+
+// Holdings dashboard (login-gated).
+export const listHoldings = () => getJson("/holdings");
+export const saveHolding = (ticker, shares, avgPrice) =>
+    postJson("/holdings", { ticker, shares, avgPrice });
+export const deleteHolding = (id) => deleteJson(`/holdings/${id}`);
+export const analyzeHoldings = (holdings, targetWeights, region) =>
+    postJson("/holdings/analyze", { holdings, targetWeights, region });

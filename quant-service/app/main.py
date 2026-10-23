@@ -39,6 +39,7 @@ from .store import (
     upsert_prices,
 )
 from .universe import SEED_UNIVERSE
+from .allocate import COST_RATES, allocate_cash, analyze_holdings
 
 app = FastAPI(title="Portfolio Optimizer — quant service", version="1.0.0")
 
@@ -82,6 +83,23 @@ class IngestRequest(BaseModel):
 class UniverseAddRequest(BaseModel):
     ticker: str
     name: str | None = None
+
+class AllocateRequest(BaseModel):
+    tickers: list[str]
+    weights: dict[str, float]
+    amount: float
+
+
+class HoldingInput(BaseModel):
+    ticker: str
+    shares: float = Field(gt=0)
+    avg_price: float = Field(gt=0)
+
+
+class HoldingsAnalyzeRequest(BaseModel):
+    holdings: list[HoldingInput]
+    target_weights: dict[str, float] = Field(default_factory=dict)
+    region: str = "US"
 
 
 # ----------------------------------------------------------------------------
@@ -180,6 +198,21 @@ def _weights_dict(m: MarketInputs, w: np.ndarray) -> dict[str, float]:
 def _portfolio_block(m: MarketInputs, w: np.ndarray, risk_free: float) -> dict:
     ret, vol, sharpe = portfolio_stats(m, w, risk_free)
     return {"weights": _weights_dict(m, w), "ret": ret, "vol": vol, "sharpe": sharpe}
+
+def _latest_prices(tickers: list[str]) -> dict[str, float]:
+    """Most recent close per ticker; 422 if any ticker has no recent price."""
+    prices = fetch_prices(tickers, period="1mo")
+    latest: dict[str, float] = {}
+    for t in tickers:
+        if t not in prices.columns:
+            continue
+        series = prices[t].dropna()
+        if not series.empty:
+            latest[t] = float(series.iloc[-1])
+    missing = [t for t in tickers if t not in latest]
+    if missing:
+        raise HTTPException(422, detail=f"No recent price for: {', '.join(missing)}.")
+    return latest
 
 
 # ----------------------------------------------------------------------------
@@ -461,3 +494,34 @@ def rebalance(req: RebalanceRequest) -> dict:
         "turnover": turnover,
         "rebalances": n_rebal,
     }
+
+@app.post("/allocate")
+def allocate(req: AllocateRequest) -> dict:
+    """Split a cash amount across optimized weights: dollars + whole/fractional shares."""
+    tickers = _clean_tickers(req.tickers)
+    if not tickers:
+        raise HTTPException(422, detail="Provide at least one ticker.")
+    if req.amount <= 0:
+        raise HTTPException(422, detail="Amount must be greater than 0.")
+    weights = {t: float(req.weights.get(t, 0.0) or 0.0) for t in tickers}
+    if sum(weights.values()) <= 0:
+        raise HTTPException(422, detail="Weights must sum to a positive value.")
+    s = sum(weights.values())
+    weights = {t: w / s for t, w in weights.items()}  # normalize defensively
+    return allocate_cash(tickers, weights, req.amount, _latest_prices(tickers))
+
+
+@app.post("/holdings/analyze")
+def holdings_analyze(req: HoldingsAnalyzeRequest) -> dict:
+    """Holdings health check: P&L, drift vs target weights, rebalance cost verdict."""
+    region = req.region.strip().upper()
+    if region not in COST_RATES:
+        raise HTTPException(422, detail='region must be "US" or "IN".')
+    if not req.holdings:
+        raise HTTPException(422, detail="Provide at least one holding.")
+    holdings = [
+        {"ticker": h.ticker.strip().upper(), "shares": h.shares, "avg_price": h.avg_price}
+        for h in req.holdings
+    ]
+    tickers = _clean_tickers([h["ticker"] for h in holdings])
+    return analyze_holdings(holdings, req.target_weights, region, _latest_prices(tickers))

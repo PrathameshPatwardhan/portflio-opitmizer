@@ -51,6 +51,16 @@ public class QuantServiceClient {
         return post("/optimize/cvar", req, Map.class);
     }
 
+    /** Dollar split: {tickers, weights, amount} -> dollars + whole/fractional shares. */
+    public Map<String, Object> allocate(Map<String, Object> req) {
+        return post("/allocate", req, Map.class);
+    }
+
+    /** Holdings health check: {holdings, target_weights, region} -> drift, trades, cost verdict. */
+    public Map<String, Object> analyzeHoldings(Map<String, Object> req) {
+        return post("/holdings/analyze", req, Map.class);
+    }
+
 
     /** Manual refresh: fetch fresh bars into MySQL. Body: {"tickers": [...], "period": "5y"}. */
     public Map<String, Object> ingest(Map<String, Object> req) {

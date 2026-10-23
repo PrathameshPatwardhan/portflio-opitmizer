@@ -4,6 +4,7 @@ import FrontierView from "./components/FrontierView.jsx";
 import PortfolioView from "./components/PortfolioView.jsx";
 import RebalanceView from "./components/RebalanceView.jsx";
 import CvarView from "./components/CvarView.jsx";
+import DashboardView from "./components/DashboardView.jsx";
 import GlossaryView from "./components/GlossaryView.jsx";
 import { AuthProvider, useAuth } from "./AuthContext.jsx";
 import AuthScreen from "./AuthScreen.jsx";
@@ -175,9 +176,9 @@ function App() {
               : optResult?.dataSource;
 
   // The Saved tab only exists for logged-in users.
-  const tabs = user ? [...TABS, ["saved", "Saved"]] : TABS;
+  const tabs = user ? [...TABS, ["dashboard", "Dashboard"], ["saved", "Saved"]] : TABS;
   // Logging out while on the Saved tab falls back to Frontier.
-  const visibleTab = tab === "saved" && !user ? "frontier" : tab;
+  const visibleTab = (tab === "saved" || tab === "dashboard") && !user ? "frontier" : tab;
 
   // Full-screen auth view (login/signup); everything else stays public.
   if (authView && !user) {
@@ -334,6 +335,9 @@ function App() {
                       loading={cvarLoading}
                       hasInputs={inputs.tickers.length > 1}
                   />
+              )}
+              {visibleTab === "dashboard" && user && (
+                  <DashboardView optResult={optResult} />
               )}
               {visibleTab === "glossary" && <GlossaryView />}
               {visibleTab === "saved" && user && (

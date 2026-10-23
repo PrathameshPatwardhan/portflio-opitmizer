@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Plot from "./Plot.jsx";
-import { buildOptimizeBody, optimizeTarget } from "../api.js";
+import { buildOptimizeBody, optimizeTarget, allocate } from "../api.js";
 
 function downloadCsv(weights) {
   const rows = ["ticker,weight"];
@@ -20,6 +20,25 @@ export default function PortfolioView({ optResult, inputs, onError }) {
   const [targetReturn, setTargetReturn] = useState(null); // fraction
   const [targetResult, setTargetResult] = useState(null);
   const [targetLoading, setTargetLoading] = useState(false);
+  const [amount, setAmount] = useState("2000");
+  const [alloc, setAlloc] = useState(null);
+  const [allocLoading, setAllocLoading] = useState(false);
+
+  async function runAllocate() {
+    const amt = Number(amount);
+    if (!shown || !(amt > 0)) {
+      onError("Enter an investment amount greater than 0.");
+      return;
+    }
+    setAllocLoading(true);
+    try {
+      setAlloc(await allocate(Object.keys(shown.weights), shown.weights, amt));
+    } catch (e) {
+      onError(e.message);
+    } finally {
+      setAllocLoading(false);
+    }
+  }
 
   // Frontier return range for the target slider.
   const [lo, hi] = useMemo(() => {
@@ -166,6 +185,45 @@ export default function PortfolioView({ optResult, inputs, onError }) {
                 ))}
             </tbody>
           </table>
+
+          <div style={{ marginTop: 24 }}>
+            <h3>Turn this into real money</h3>
+            <p className="hint">
+              Enter how much you want to invest and see exactly what to buy —
+              dollar amounts plus share counts, whole and fractional side by side.
+            </p>
+            <div style={{ display: "flex", gap: 8, alignItems: "end", flexWrap: "wrap" }}>
+              <label className="field" style={{ margin: 0 }}>
+                <span>Investment amount ($)</span>
+                <input type="number" min="1" step="1" value={amount} onChange={(e) => setAmount(e.target.value)} style={{ width: 140 }} />
+              </label>
+              <button type="button" className="secondary" onClick={runAllocate} disabled={allocLoading}>
+                {allocLoading ? "Splitting…" : "Show me the split"}
+              </button>
+            </div>
+            {alloc && (
+                <>
+                  <table className="weights-table" style={{ marginTop: 12 }}>
+                    <thead>
+                    <tr><th>Ticker</th><th>Weight</th><th>$</th><th>Whole shares</th><th>Fractional</th></tr>
+                    </thead>
+                    <tbody>
+                    {[...alloc.allocations].sort((a, b) => b.weight - a.weight).map((r) => (
+                        <tr key={r.ticker}>
+                          <td>{r.ticker}</td>
+                          <td>{(r.weight * 100).toFixed(1)}%</td>
+                          <td>${r.dollars.toFixed(2)}</td>
+                          <td>{r.wholeShares} (${r.wholeCost.toFixed(2)})</td>
+                          <td>{r.fractionalShares}</td>
+                        </tr>
+                    ))}
+                    </tbody>
+                  </table>
+                  <p className="hint">Leftover cash from rounding down to whole shares: ${alloc.leftoverCash.toFixed(2)}.</p>
+                  <p className="hint">{alloc.explanation}</p>
+                </>
+            )}
+          </div>
 
           <div className="howto">
             <h3>What you&rsquo;re looking at</h3>
