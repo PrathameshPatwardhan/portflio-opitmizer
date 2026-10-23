@@ -281,3 +281,33 @@ button.auth-btn { margin-top: 0; padding: 8px 14px; width: auto; }
 }
 .auth-toggle { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 14px; padding: 0; }
 .auth-toggle:hover { text-decoration: underline; }
+/* Dashboard tables become stacked cards on phones: no horizontal scrolling. */
+@media (max-width: 640px) {
+  .stack-table thead { display: none; }
+  .stack-table, .stack-table tbody, .stack-table tr, .stack-table td {
+    display: block;
+    width: 100%;
+  }
+  .stack-table tr {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 4px 0;
+  }
+  .stack-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 12px;
+  }
+  .stack-table td:last-child { border-bottom: none; }
+  .stack-table td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .stack-table td:first-child { font-weight: 600; }
+}
+

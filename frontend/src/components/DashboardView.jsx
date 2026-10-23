@@ -139,16 +139,16 @@ export default function DashboardView({ optResult }) {
             {holdings.length === 0 ? (
                 <p className="hint">No holdings yet — add your first one above.</p>
             ) : (
-                <table className="weights-table">
-                    <thead>
-                    <tr><th>Ticker</th><th>Shares</th><th>Avg price</th><th></th></tr>
-                    </thead>
-                    <tbody>
+                <table className="weights-table stack-table">
+                <thead>
+                <tr><th>Ticker</th><th>Shares</th><th>Avg price</th><th></th></tr>
+                </thead>
+                <tbody>
                     {holdings.map((h) => (
                         <tr key={h.id}>
-                            <td>{h.ticker}</td>
-                            <td>{Number(h.shares).toLocaleString()}</td>
-                            <td>{money(h.avg_price, region === "IN" ? "₹" : "$")}</td>
+                            <td data-label="Ticker">{h.ticker}</td>
+                            <td data-label="Shares">{Number(h.shares).toLocaleString()}</td>
+                            <td data-label="Avg price">{money(h.avg_price, region === "IN" ? "₹" : "$")}</td>
                             <td>
                                 <button type="button" className="secondary" style={{ padding: "4px 10px" }} onClick={() => removeHolding(h.id)}>
                                     Remove
@@ -190,7 +190,7 @@ export default function DashboardView({ optResult }) {
                         <div className="metric">
                             <div className="metric-label">Total gain/loss</div>
                             <div className="metric-value" style={{ color: analysis.totalPnl >= 0 ? "var(--ink)" : "#b91c1c" }}>
-                                {money(analysis.totalPnl, analysis.symbol)} ({analysis.totalPnlPct.toFixed(1)}%)
+                                {money(analysis.totalPnl, analysis.symbol)}{" "}({analysis.totalPnlPct.toFixed(1)}%)
                             </div>
                         </div>
                         <div className="metric">
@@ -206,22 +206,23 @@ export default function DashboardView({ optResult }) {
                     <div style={{ marginTop: 4, borderLeft: "3px solid var(--accent)", paddingLeft: 12 }}>
                         <strong>Verdict: </strong>{analysis.verdict}
                     </div>
-                    <p className="hint" style={{ marginTop: 8 }}>{analysis.costAssumption}. Drift threshold: {(analysis.driftThreshold * 100).toFixed(0)}pp.</p>
+                    <p className="hint" style={{ marginTop: 8 }}>{analysis.costAssumption}.
+                        Drift threshold: {(analysis.driftThreshold * 100).toFixed(0)} pp.</p>
 
                     <h3>Per-asset performance</h3>
-                    <table className="weights-table">
+                    <table className="weights-table stack-table">
                         <thead>
                         <tr><th>Ticker</th><th>Value</th><th>Gain/loss</th><th>Now</th><th>Target</th><th>Drift</th></tr>
                         </thead>
                         <tbody>
                         {analysis.items.map((it) => (
                             <tr key={it.ticker}>
-                                <td>{it.ticker}</td>
-                                <td>{money(it.value, analysis.symbol)}</td>
-                                <td>{money(it.pnl, analysis.symbol)} ({it.pnlPct.toFixed(1)}%)</td>
-                                <td>{(it.currentWeight * 100).toFixed(1)}%</td>
-                                <td>{(it.targetWeight * 100).toFixed(1)}%</td>
-                                <td>{it.drift >= 0 ? "+" : ""}{(it.drift * 100).toFixed(1)}pp</td>
+                                <td data-label="Ticker">{it.ticker}</td>
+                                <td data-label="Value">{money(it.value, analysis.symbol)}</td>
+                                <td data-label="Gain/loss">{money(it.pnl, analysis.symbol)}{" "}({it.pnlPct.toFixed(1)}%)</td>
+                                <td data-label="Now">{(it.currentWeight * 100).toFixed(1)}%</td>
+                                <td data-label="Target">{(it.targetWeight * 100).toFixed(1)}%</td>
+                                <td data-label="Drift">{it.drift >= 0 ? "+" : ""}{(it.drift * 100).toFixed(1)} pp</td>
                             </tr>
                         ))}
                         </tbody>
@@ -230,17 +231,17 @@ export default function DashboardView({ optResult }) {
                     {analysis.trades.length > 0 && (
                         <>
                             <h3>Rebalance trades</h3>
-                            <table className="weights-table">
+                            <table className="weights-table stack-table">
                                 <thead>
                                 <tr><th></th><th>Ticker</th><th>Shares</th><th>Value</th></tr>
                                 </thead>
                                 <tbody>
                                 {analysis.trades.map((t) => (
                                     <tr key={t.ticker}>
-                                        <td>{t.side}</td>
-                                        <td>{t.ticker}</td>
-                                        <td>{t.deltaShares.toLocaleString()}</td>
-                                        <td>{money(t.deltaValue, analysis.symbol)}</td>
+                                        <td data-label="Action">{t.side}</td>
+                                        <td data-label="Ticker">{t.ticker}</td>
+                                        <td data-label="Shares">{t.deltaShares.toLocaleString()}</td>
+                                        <td data-label="Value">{money(t.deltaValue, analysis.symbol)}</td>
                                     </tr>
                                 ))}
                                 </tbody>
