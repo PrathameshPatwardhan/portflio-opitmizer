@@ -124,53 +124,23 @@ function TermBody({ t }) {
 }
 
 export default function GlossaryView() {
-    const [query, setQuery] = useState("");
     const [open, setOpen] = useState(TERMS[0].name);
 
-    const q = query.trim().toLowerCase();
-    const searching = q.length > 0;
-    const visible = searching
-        ? TERMS.filter((t) => `${t.name} ${t.text}`.toLowerCase().includes(q))
-        : TERMS;
+    const visible = TERMS;
 
     return (
         <div>
             <p className="hint" style={{ marginTop: 0 }}>
                 Finance terms, in plain English — tap a term to expand it.
             </p>
-            <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search terms…"
-                aria-label="Search glossary terms"
-                style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "12px 14px",
-                    marginBottom: 8,
-                    fontSize: 16, // 16px+ stops iOS zoom-on-focus
-                    color: "var(--ink)",
-                    background: "var(--input-bg)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 8,
-                }}
-            />
-            {searching && (
-                <p className="hint" style={{ margin: "0 0 8px" }}>
-                    {visible.length === 0
-                        ? `No terms match "${query}".`
-                        : `${visible.length} term${visible.length === 1 ? "" : "s"} match${visible.length === 1 ? "es" : ""}.`}
-                </p>
-            )}
             <div>
                 {visible.map((t) => {
-                    const isOpen = searching || open === t.name;
+                    const isOpen = open === t.name;
                     return (
                         <div key={t.name} style={{ borderBottom: "1px solid var(--border)" }}>
                             <button
                                 type="button"
-                                onClick={() => !searching && setOpen(isOpen ? null : t.name)}
+                                onClick={() => setOpen(isOpen ? null : t.name)}
                                 aria-expanded={isOpen}
                                 style={{
                                     width: "100%",
@@ -178,11 +148,11 @@ export default function GlossaryView() {
                                     alignItems: "center",
                                     justifyContent: "space-between",
                                     gap: 12,
-                                    minHeight: 52, // comfortable thumb target
+                                    minHeight: 52,
                                     padding: "12px 2px",
                                     background: "none",
                                     border: "none",
-                                    cursor: searching ? "default" : "pointer",
+                                    cursor: "pointer",
                                     color: "var(--ink)",
                                     fontSize: 16,
                                     fontWeight: 600,
@@ -190,11 +160,9 @@ export default function GlossaryView() {
                                 }}
                             >
                                 <span>{t.name}</span>
-                                {!searching && (
-                                    <span aria-hidden="true" style={{ color: "var(--muted)", fontSize: 20, lineHeight: 1 }}>
-                    {isOpen ? "−" : "+"}
-                  </span>
-                                )}
+                                <span aria-hidden="true" style={{ color: "var(--muted)", fontSize: 20, lineHeight: 1 }}>
+                        {isOpen ? "−" : "+"}
+                    </span>
                             </button>
                             {isOpen && <TermBody t={t} />}
                         </div>
