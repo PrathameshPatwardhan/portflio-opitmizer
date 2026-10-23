@@ -240,7 +240,9 @@ function App() {
             <p className="intro-text">
               Pick a few tickers, and this app finds the mix of them with the
               best return for its risk — the mean-variance math from portfolio
-              theory, run on real market prices.
+              theory, run on real market prices. Then it turns the answer into
+              things you can actually use: dollar amounts, a tail-risk check,
+              and a dashboard for the holdings you really own.
             </p>
             <ol className="intro-steps">
               <li>
@@ -253,7 +255,11 @@ function App() {
               </li>
               <li>
                 <span className="step-num">3</span>
-                <span><strong>Explore the tabs</strong> — Frontier, Portfolio, Rebalance</span>
+                <span><strong>Explore the tabs</strong> — Frontier, Portfolio, Rebalance, Tail Risk, Glossary</span>
+              </li>
+              <li>
+                <span className="step-num">4</span>
+                <span><strong>Log in</strong> to save portfolios and track real holdings on the Dashboard</span>
               </li>
             </ol>
           </div>
