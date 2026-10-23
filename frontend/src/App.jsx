@@ -170,11 +170,6 @@ function App() {
     setError("");
   }
 
-  const activeSource =
-      tab === "rebalance" ? rebResult?.dataSource
-          : tab === "tailrisk" ? cvarResult?.dataSource
-              : optResult?.dataSource;
-
   // The Saved tab only exists for logged-in users.
   const tabs = user ? [...TABS, ["dashboard", "Dashboard"], ["saved", "Saved"]] : TABS;
   // Logging out while on the Saved tab falls back to Frontier.
@@ -291,11 +286,6 @@ function App() {
                     {label}
                   </button>
               ))}
-              {activeSource && (
-                  <span className="datasrc-badge" title="Where the numbers came from">
-                Data: {activeSource === "mysql" ? "MySQL" : "live prices"}
-              </span>
-              )}
             </nav>
 
             <section className="card">

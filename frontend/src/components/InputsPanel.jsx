@@ -235,11 +235,6 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                         ))}
                     </div>
                 )}
-                {universeData?.source && (
-                    <span className="muted" style={{ fontSize: "12px", marginTop: "4px" }}>
-                        List via {universeData.source === "yahoo" ? "Yahoo Finance" : "MySQL fallback"}
-                    </span>
-                )}
             </div>
 
             <label className="field">
@@ -250,15 +245,6 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                     <option value="5y">5 years</option>
                     <option value="10y">10 years</option>
                     <option value="max">Max</option>
-                </select>
-            </label>
-
-            <label className="field">
-                <span>Data source</span>
-                <select value={inputs.source} onChange={set("source")}>
-                    <option value="auto">Auto (MySQL when fresh, else live)</option>
-                    <option value="mysql">MySQL only</option>
-                    <option value="live">Live prices only</option>
                 </select>
             </label>
 
