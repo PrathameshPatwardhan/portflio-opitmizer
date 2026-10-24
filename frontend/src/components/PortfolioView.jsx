@@ -219,7 +219,7 @@ export default function PortfolioView({ optResult, inputs, onError }) {
                     ))}
                     </tbody>
                   </table>
-                  <p className="hint">Leftover cash from rounding down to whole shares: ${alloc.leftoverCash.toFixed(2)}.</p>
+                  <p className="hint">Leftover cash: ${alloc.leftoverCash.toFixed(2)}.</p>
                   <p className="hint">{alloc.explanation}</p>
                 </>
             )}

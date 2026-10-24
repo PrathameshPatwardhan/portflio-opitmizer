@@ -49,11 +49,7 @@ export default function CvarView({ result, alpha, setAlpha, onRun, loading, hasI
 
     return (
         <div>
-            <p className="hint">
-                Minimizes the average loss on the worst days — the tail risk that
-                volatility-based optimization ignores.
-            </p>
-
+            <p className="hint">Select at least two tickers.</p>
             <div className="row">
                 <div className="radio-row" role="radiogroup" aria-label="Tail level" style={{ marginBottom: 0 }}>
                     {[
@@ -86,10 +82,7 @@ export default function CvarView({ result, alpha, setAlpha, onRun, loading, hasI
             )}
 
             {hasInputs && !result && !loading && (
-                <p className="hint">
-                    Pick a tail level and run — the app finds the mix with the smallest
-                    average loss on the worst days.
-                </p>
+                <p className="hint">Pick a tail level and run.</p>
             )}
 
             {shown && (

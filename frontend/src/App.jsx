@@ -233,11 +233,10 @@ function App() {
           </div>
           <div className="intro-card">
             <p className="intro-text">
-              Pick a few tickers, and this app finds the mix of them with the
-              best return for its risk — the mean-variance math from portfolio
-              theory, run on real market prices. Then it turns the answer into
-              things you can actually use: dollar amounts, a tail-risk check,
-              and a dashboard for the holdings you really own.
+              Pick a few tickers — the app finds the mix with the best return
+              for its risk, from real market prices. Then it turns the answer
+              into dollar amounts, a tail-risk check, and a dashboard for
+              your holdings.
             </p>
             <ol className="intro-steps">
               <li>

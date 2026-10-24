@@ -171,7 +171,7 @@ export default function DashboardView({ optResult }) {
                         ))}
                     </div>
                     {!optResult ? (
-                        <p className="hint">Run an optimization first — the dashboard needs the Max Sharpe mix to compare against.</p>
+                        <p className="hint">Run an optimization first — the dashboard needs the Max Sharpe mix.</p>
                     ) : (
                         <button type="button" className="secondary" onClick={runAnalysis} disabled={analyzing}>
                             {analyzing ? "Analyzing…" : "Analyze my holdings"}
