@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Plot from "./Plot.jsx";
+import InfoTip from "./InfoTip.jsx";
 import { buildOptimizeBody, optimizeTarget, allocate } from "../api.js";
 
 function downloadCsv(weights) {
@@ -187,11 +188,10 @@ export default function PortfolioView({ optResult, inputs, onError }) {
           </table>
 
           <div style={{ marginTop: 24 }}>
-            <h3>Turn this into real money</h3>
-            <p className="hint">
-              Enter how much you want to invest and see exactly what to buy —
-              dollar amounts plus share counts, whole and fractional side by side.
-            </p>
+            <h3>
+            Turn this into real money{" "}
+            <InfoTip text="Weights come from the max-Sharpe optimization. Dollar amounts are proportional splits of your investment. Whole shares round down — the remainder stays as cash. Fractional shares show the exact split if your broker supports them." />
+          </h3>
             <div style={{ display: "flex", gap: 8, alignItems: "end", flexWrap: "wrap" }}>
               <label className="field" style={{ margin: 0 }}>
                 <span>Investment amount ($)</span>
@@ -220,42 +220,13 @@ export default function PortfolioView({ optResult, inputs, onError }) {
                     </tbody>
                   </table>
                   <p className="hint">Leftover cash: ${alloc.leftoverCash.toFixed(2)}.</p>
-                  <p className="hint">{alloc.explanation}</p>
                 </>
             )}
           </div>
-
-          <div className="howto">
-            <h3>What you&rsquo;re looking at</h3>
-            <ul>
-              <li>
-                <strong>Weights:</strong> what share of your money goes into
-                each asset. They always add up to 100%.
-              </li>
-              <li>
-                <strong>Max Sharpe:</strong> the mix with the best return for
-                each unit of risk taken. The efficiency sweet spot.
-              </li>
-              <li>
-                <strong>Min volatility:</strong> the calmest mix possible —
-                smallest swings, usually lower return.
-              </li>
-              <li>
-                <strong>Target return:</strong> you pick the return you want;
-                the app finds the calmest mix that aims for it.
-              </li>
-              <li>
-                <strong>The three numbers:</strong> Return is the expected
-                yearly gain, estimated from history. Volatility is how bumpy
-                the ride is. Sharpe is return per unit of risk above the
-                risk-free rate — higher is better.
-              </li>
-              <li>
-                <strong>Keep in mind:</strong> these estimates come from past
-                prices. History is the input, not a promise.
-              </li>
-            </ul>
-          </div>
+          <h3>
+            What you&rsquo;re looking at{" "}
+            <InfoTip text="Weights add to 100%. Max Sharpe is the best return per unit of risk; min volatility is the calmest mix. Return is the expected yearly gain estimated from history, volatility is how bumpy the ride is, Sharpe is return per unit of risk above the risk-free rate. Past prices are the input, not a promise." />
+          </h3>
         </>
       )}
     </div>

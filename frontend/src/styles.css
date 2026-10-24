@@ -310,4 +310,10 @@ button.auth-btn { margin-top: 0; padding: 8px 14px; width: auto; }
   }
   .stack-table td:first-child { font-weight: 600; }
 }
+/* InfoTip: tap-friendly ⓘ tooltip (hover doesn't exist on phones). */
+.infotip { position: relative; display: inline-flex; align-self: center; }
+.infotip-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; padding: 0 2px; }
+.infotip-btn:hover, .infotip-btn:focus-visible { color: var(--accent); }
+.infotip-card { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; width: 280px; max-width: min(280px, calc(100vw - 48px)); background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.5; color: var(--ink); box-shadow: var(--shadow-lg); font-weight: 400; text-align: left; }
+
 

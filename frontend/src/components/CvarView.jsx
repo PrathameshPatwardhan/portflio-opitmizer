@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 import Plot from "./Plot.jsx";
+import InfoTip from "./InfoTip.jsx"
 
 function downloadCsv(weights) {
     const rows = ["ticker,weight"];
@@ -49,7 +50,6 @@ export default function CvarView({ result, alpha, setAlpha, onRun, loading, hasI
 
     return (
         <div>
-            <p className="hint">Select at least two tickers.</p>
             <div className="row">
                 <div className="radio-row" role="radiogroup" aria-label="Tail level" style={{ marginBottom: 0 }}>
                     {[
@@ -75,10 +75,11 @@ export default function CvarView({ result, alpha, setAlpha, onRun, loading, hasI
                 >
                     {loading ? "Solving…" : "Minimize tail risk"}
                 </button>
+                <InfoTip text="Minimizes the average loss on the worst days — the tail risk that volatility-based optimization ignores." />
             </div>
 
             {!hasInputs && (
-                <p className="hint">Select at least two tickers to run a tail-risk optimization.</p>
+                <p className="hint">Select at least two tickers.</p>
             )}
 
             {hasInputs && !result && !loading && (
