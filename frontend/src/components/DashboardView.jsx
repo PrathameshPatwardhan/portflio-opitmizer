@@ -6,6 +6,7 @@ import {
     analyzeHoldings,
     validateUniverseTicker,
 } from "../api.js";
+import InfoTip from "./InfoTip.jsx"
 
 const REGIONS = [
     ["US", "USA"],
@@ -110,11 +111,10 @@ export default function DashboardView({ optResult }) {
 
     return (
         <div>
-            <p className="hint" style={{ marginTop: 0 }}>
-                Your real-world positions, saved to your account. The analysis compares
-                them against the <strong>Max Sharpe</strong> mix from your latest
-                optimization.
-            </p>
+            <h3 style={{ marginTop: 0 }}>
+                My holdings{" "}
+                <InfoTip text="Your real-world positions, saved to your account. Analysis compares them against the Max Sharpe mix from your latest optimization." />
+            </h3>
 
             {error && <div className="error" style={{ marginBottom: 12 }}>{error}</div>}
 
@@ -204,10 +204,9 @@ export default function DashboardView({ optResult }) {
                     </div>
 
                     <div style={{ marginTop: 4, borderLeft: "3px solid var(--accent)", paddingLeft: 12 }}>
-                        <strong>Verdict: </strong>{analysis.verdict}
+                        <strong>Verdict: </strong>{analysis.verdict}{" "}
+                        <InfoTip text={`${analysis.costAssumption}. Drift threshold: ${(analysis.driftThreshold * 100).toFixed(0)} pp.`} />
                     </div>
-                    <p className="hint" style={{ marginTop: 8 }}>{analysis.costAssumption}.
-                        Drift threshold: {(analysis.driftThreshold * 100).toFixed(0)} pp.</p>
 
                     <h3>Per-asset performance</h3>
                     <table className="weights-table stack-table">
