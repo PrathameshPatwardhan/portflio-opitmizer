@@ -238,6 +238,7 @@ function App() {
                   <button
                       type="button"
                       className="secondary auth-btn"
+                      data-tour="login"
                       onClick={() => setAuthView(true)}
                   >
                     Log in
@@ -263,7 +264,7 @@ function App() {
               </button>
             </div>
           </div>
-          <div className="intro-card">
+          <div className="intro-card" data-tour="intro">
             <p className="intro-text">
               Pick a few tickers — the app finds the mix with the best return
               for its risk, from real market prices. Then it turns the answer
@@ -307,10 +308,11 @@ function App() {
           />
 
           <main className="main">
-            <nav className="tabs">
+            <nav className="tabs" data-tour="tabs">
               {tabs.map(([key, label]) => (
                   <button
                       key={key}
+                      data-tour={`tab-${key}`}
                       className={visibleTab === key ? "tab active" : "tab"}
                       onClick={() => setTab(key)}
                   >
@@ -319,7 +321,7 @@ function App() {
               ))}
             </nav>
 
-            <section className="card">
+            <section className="card" data-tour="results">
               {visibleTab === "frontier" && <FrontierView data={optResult} theme={theme} />}
               {visibleTab === "portfolio" && (
                   <>
