@@ -72,7 +72,7 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
 
 
     return (
-        <aside className="panel">
+        <aside className="panel" data-tour="panel">
             <h2>Inputs</h2>
 
             <div className="field">
@@ -283,7 +283,7 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
                 />
             </label>
 
-            <button className="primary" onClick={onRun} disabled={loading}>
+            <button className="primary" data-tour="run" onClick={onRun} disabled={loading}>
                 {loading ? "Optimizing…" : "Run optimization"}
             </button>
         </aside>

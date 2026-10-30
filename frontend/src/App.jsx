@@ -9,6 +9,7 @@ import GlossaryView from "./components/GlossaryView.jsx";
 import { AuthProvider, useAuth } from "./AuthContext.jsx";
 import AuthScreen from "./AuthScreen.jsx";
 import SavedPortfolios from "./SavedPortfolios.jsx";
+import Tour, { TourPrompt } from "./components/Tour.jsx";
 import { buildOptimizeBody, optimize, optimizeCvar, rebalance, universe, ingest, savePortfolio } from "./api.js";
 const DEFAULTS = {
   tickers: [],
@@ -45,6 +46,9 @@ function App() {
   const [refreshMsg, setRefreshMsg] = useState("");
   const [authView, setAuthView] = useState(false); // true -> show the login/signup screen
   const [saveMsg, setSaveMsg] = useState("");
+  const [tourPrompt, setTourPrompt] = useState(false);
+  const [tourActive, setTourActive] = useState(false);
+  const [tourStartTab, setTourStartTab] = useState("frontier");
 
   const [theme, setTheme] = useState(() => {
     try {
@@ -59,6 +63,13 @@ function App() {
     document.documentElement.dataset.theme = theme;
     try { localStorage.setItem("po-theme", theme); } catch {}
   }, [theme]);
+
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("po-tour-seen")) setTourPrompt(true);
+    } catch {}
+  }, []);
+
 
 
   const universeSeq = useRef(0);
@@ -175,6 +186,24 @@ function App() {
   // Logging out while on the Saved tab falls back to Frontier.
   const visibleTab = (tab === "saved" || tab === "dashboard") && !user ? "frontier" : tab;
 
+  function startTour() {
+    setTourStartTab(visibleTab);
+    setTourPrompt(false);
+    setTourActive(true);
+  }
+
+  function closeTour() {
+    setTourActive(false);
+    setTab(tourStartTab);
+    try { localStorage.setItem("po-tour-seen", "1"); } catch {}
+  }
+
+  function declineTour() {
+    setTourPrompt(false);
+    try { localStorage.setItem("po-tour-seen", "1"); } catch {}
+  }
+
+
   // Full-screen auth view (login/signup); everything else stays public.
   if (authView && !user) {
     return (
@@ -195,6 +224,9 @@ function App() {
               </p>
             </div>
             <div className="header-actions">
+              <button type="button" className="secondary" onClick={startTour}>
+                Tour
+              </button>
               {user ? (
                   <div className="auth-area">
                     <span className="auth-email" title="Signed in">{user.email}</span>
@@ -345,6 +377,14 @@ function App() {
         <footer className="footer">
           Passion Project
         </footer>
+
+        {tourPrompt && !tourActive && (
+            <TourPrompt onYes={startTour} onNo={declineTour} />
+        )}
+        {tourActive && (
+            <Tour user={user} setTab={setTab} onClose={closeTour} />
+        )}
+
       </div>
   );
 }

@@ -316,4 +316,18 @@ button.auth-btn { margin-top: 0; padding: 8px 14px; width: auto; }
 .infotip-btn:hover, .infotip-btn:focus-visible { color: var(--accent); }
 .infotip-card { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; width: 280px; max-width: min(280px, calc(100vw - 48px)); background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.5; color: var(--ink); box-shadow: var(--shadow-lg); font-weight: 400; text-align: left; }
 
+/* Guided tour: first-visit prompt + step-by-step overlay. */
+.tour-overlay { position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, 0.45); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.tour-overlay.tour-stepper-overlay { align-items: flex-end; padding: 20px 20px 24px; }
+.tour-prompt { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 420px; width: 100%; box-shadow: var(--shadow-lg); text-align: center; }
+.tour-prompt h2 { margin: 0 0 8px; }
+.tour-prompt p { margin: 0 0 20px; color: var(--muted); }
+.tour-card { position: relative; z-index: 52; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; width: min(480px, calc(100vw - 32px)); box-shadow: var(--shadow-lg); }
+.tour-progress { margin: 0 0 6px; font-size: 13px; color: var(--muted); }
+.tour-card h2 { margin: 0 0 8px; font-size: 18px; }
+.tour-card p { margin: 0 0 16px; line-height: 1.5; }
+.tour-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.tour-actions .primary { margin-left: auto; }
+.tour-highlight { position: relative; z-index: 51; outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+@media (max-width: 640px) { .tour-card { padding: 16px; } }
 
