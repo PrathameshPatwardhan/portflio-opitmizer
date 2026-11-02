@@ -112,8 +112,9 @@ export default function Tour({ user, setTab, onClose }) {
     }, [step, setTab]);
 
     return (
-        <div className="tour-overlay tour-stepper-overlay" role="dialog" aria-modal="true" aria-label="Website tour">
-            <div className="tour-card">
+        <>
+            <div className="tour-overlay tour-stepper-overlay" aria-hidden="true" />
+            <div className="tour-card" role="dialog" aria-modal="true" aria-label="Website tour">
                 <p className="tour-progress">Step {index + 1} of {steps.length}</p>
                 <h2>{step.title}</h2>
                 <p>{step.body}</p>
@@ -135,6 +136,6 @@ export default function Tour({ user, setTab, onClose }) {
                     )}
                 </div>
             </div>
-        </div>
+        </>
     );
 }

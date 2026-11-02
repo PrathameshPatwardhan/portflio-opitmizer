@@ -224,7 +224,7 @@ function App() {
               </p>
             </div>
             <div className="header-actions">
-              <button type="button" className="secondary" onClick={startTour}>
+              <button type="button" className="secondary auth-btn" onClick={startTour}>
                 Tour
               </button>
               {user ? (
