@@ -455,8 +455,7 @@ def optimize_cvar(req: CvarRequest) -> dict:
     min_cvar["cvar"] = daily_cvar(w_cvar)
     max_sharpe = _portfolio_block(m, w_sharpe, req.riskFreeRate)
     max_sharpe["cvar"] = daily_cvar(w_sharpe)
-
-return {
+    return {
         "dataSource": data_source,
         "alpha": req.alpha,
         "minCvar": min_cvar,
