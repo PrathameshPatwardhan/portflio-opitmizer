@@ -121,15 +121,15 @@ export default function DashboardView({ optResult }) {
             <form onSubmit={addHolding} style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "end", marginBottom: 16 }}>
                 <label className="field" style={{ margin: 0 }}>
                     <span>Ticker</span>
-                    <input value={ticker} onChange={(e) => setTicker(e.target.value)} placeholder="AAPL" style={{ width: 110 }} />
+                    <input value={ticker} onChange={(e) => setTicker(e.target.value)} placeholder="e.g. AAPL" style={{ width: 110 }} />
                 </label>
                 <label className="field" style={{ margin: 0 }}>
                     <span>Shares</span>
-                    <input type="number" min="0" step="any" value={shares} onChange={(e) => setShares(e.target.value)} placeholder="10" style={{ width: 110 }} />
+                    <input type="number" min="0" step="any" value={shares} onChange={(e) => setShares(e.target.value)} placeholder="e.g. 10" style={{ width: 110 }} />
                 </label>
                 <label className="field" style={{ margin: 0 }}>
                     <span>Avg buy price</span>
-                    <input type="number" min="0" step="any" value={avgPrice} onChange={(e) => setAvgPrice(e.target.value)} placeholder="150.00" style={{ width: 130 }} />
+                    <input type="number" min="0" step="any" value={avgPrice} onChange={(e) => setAvgPrice(e.target.value)} placeholder="e.g. 150.00" style={{ width: 130 }} />
                 </label>
                 <button type="submit" className="secondary" disabled={saving}>
                     {saving ? "Saving…" : "Add holding"}

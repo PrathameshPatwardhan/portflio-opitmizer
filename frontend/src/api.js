@@ -14,16 +14,23 @@ function authHeaders() {
   }
 }
 
+async function errorFrom(res) {
+  const text = await res.text();
+  try {
+    const body = JSON.parse(text);
+    return new Error(body.message || body.detail || body.error || `Request failed (${res.status})`);
+  } catch {
+    return new Error(`Request failed (${res.status})`);
+  }
+}
+
 async function postJson(path, body) {
   const res = await fetch(`${BASE}/api${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(body),
   });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`API ${res.status}: ${text.slice(0, 300)}`);
-  }
+  if (!res.ok) throw await errorFrom(res);
   return res.json();
 }
 
@@ -31,10 +38,7 @@ async function getJson(path) {
   const res = await fetch(`${BASE}/api${path}`, {
     headers: { ...authHeaders() },
   });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`API ${res.status}: ${text.slice(0, 300)}`);
-  }
+  if (!res.ok) throw await errorFrom(res);
   return res.json();
 }
 
@@ -43,10 +47,7 @@ async function deleteJson(path) {
     method: "DELETE",
     headers: { ...authHeaders() },
   });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`API ${res.status}: ${text.slice(0, 300)}`);
-  }
+  if (!res.ok) throw await errorFrom(res);
   return res.json();
 }
 async function toAuthError(res, fallback) {
@@ -68,7 +69,7 @@ export async function login(email, password) {
   });
   if (!res.ok) throw await toAuthError(res, 'Login failed');
   const data = await res.json();
-  localStorage.setItem('token', data.token);
+  localStorage.setItem(TOKEN_KEY, data.token);
   return data;
 }
 

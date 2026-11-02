@@ -286,7 +286,11 @@ function App() {
               </li>
               <li>
                 <span className="step-num">4</span>
-                <span><strong>Log in</strong> to save portfolios and track real holdings on the Dashboard</span>
+                {user ? (
+                    <span><strong>Dashboard & Saved</strong> — track real holdings and revisit saved portfolios</span>
+                ) : (
+                    <span><strong>Log in</strong> to save portfolios and track real holdings on the Dashboard</span>
+                )}
               </li>
             </ol>
           </div>

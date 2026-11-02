@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import Plot from "./Plot.jsx";
 
-const pctFmt = { tickformat: ".0%" };
+const pctFmt = { tickformat: ".0%", dtick: 0.02 };
 
 export default function FrontierView({ data, theme }) {
   const dark = theme === "dark";

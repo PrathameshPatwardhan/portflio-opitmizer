@@ -270,8 +270,7 @@ export default function InputsPanel({ inputs, setInputs, onRun, loading, univers
             </label>
 
             <label className="field">
-                <span>Max weight per asset: {inputs.maxWeight}%</span>
-                <input
+                <span>Max weight per asset:{" "}{inputs.maxWeight}%</span><input
                     type="range"
                     min="5"
                     max="100"

@@ -32,7 +32,7 @@ const STEPS_BASE = [
         target: "results",
         tab: "rebalance",
         title: "Rebalance: stay on target",
-        body: "See how a portfolio drifts over time and what trades bring it back — quarterly, monthly, or yearly.",
+        body: "See how a portfolio drifts over time and what trades bring it back — quarterly or monthly.",
     },
     {
         target: "results",

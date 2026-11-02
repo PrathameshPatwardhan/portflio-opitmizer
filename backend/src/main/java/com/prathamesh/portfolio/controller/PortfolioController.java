@@ -40,6 +40,12 @@ public class PortfolioController {
         return quant.optimizeCvar(req);
     }
 
+    /** Dollar split: {tickers, weights, amount} -> dollars + whole/fractional shares. */
+    @PostMapping("/allocate")
+    public Map<String, Object> allocate(@RequestBody Map<String, Object> req) {
+        return quant.allocate(req);
+    }
+
     /** Manual refresh: fetch fresh market data into MySQL. */
     @PostMapping("/ingest")
     public Map<String, Object> ingest(@RequestBody Map<String, Object> req) {

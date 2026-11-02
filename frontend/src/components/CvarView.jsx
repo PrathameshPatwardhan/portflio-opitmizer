@@ -109,9 +109,7 @@ export default function CvarView({ result, alpha, setAlpha, onRun, loading, hasI
 
                     {improvement !== null && improvement > 0.5 && (
                         <p className="hint">
-                            The max-Sharpe mix would have lost {pct(result.maxSharpe.cvar)} on
-                            average in the tail — this mix cuts that to {pct(shown.cvar)} (
-                            {improvement.toFixed(0)}% smaller worst-case).
+                            The max-Sharpe mix would have lost{" "}{pct(result.maxSharpe.cvar)}{" "}on average in the tail — this mix cuts that to{" "}{pct(shown.cvar)}{" "}({improvement.toFixed(0)}% smaller worst-case).
                         </p>
                     )}
 

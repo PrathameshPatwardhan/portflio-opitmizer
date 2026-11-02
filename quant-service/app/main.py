@@ -450,12 +450,13 @@ def optimize_cvar(req: CvarRequest) -> dict:
             422, detail="Tail-risk optimization failed to converge — loosen the constraints."
         )
     # CVaR is positively homogeneous: annual CVaR = 252 x daily CVaR.
-    ann_cvar = lambda w: empirical_cvar(R, w, req.alpha) * 252.0
+    daily_cvar = lambda w: empirical_cvar(R, w, req.alpha)
     min_cvar = _portfolio_block(m, w_cvar, req.riskFreeRate)
-    min_cvar["cvar"] = ann_cvar(w_cvar)
+    min_cvar["cvar"] = daily_cvar(w_cvar)
     max_sharpe = _portfolio_block(m, w_sharpe, req.riskFreeRate)
-    max_sharpe["cvar"] = ann_cvar(w_sharpe)
-    return {
+    max_sharpe["cvar"] = daily_cvar(w_sharpe)
+
+return {
         "dataSource": data_source,
         "alpha": req.alpha,
         "minCvar": min_cvar,
