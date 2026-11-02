@@ -129,7 +129,11 @@ export default function Tour({ user, setTab, onClose }) {
             return undefined;
         }
         el.classList.add("tour-highlight");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        // On narrow screens the card is a bottom sheet, so centering a tall
+        // target pushes its top (tabs, Run button) off-screen while the sheet
+        // eats the bottom. Pin the target's top to the viewport top instead.
+        const narrow = window.innerWidth <= MOBILE_BREAKPOINT;
+        el.scrollIntoView({ behavior: "smooth", block: narrow ? "start" : "center" });
 
         const measure = () => {
             // Narrow screens: no anchoring, CSS bottom sheet takes over.
