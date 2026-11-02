@@ -130,10 +130,18 @@ export default function Tour({ user, setTab, onClose }) {
         }
         el.classList.add("tour-highlight");
         // On narrow screens the card is a bottom sheet, so centering a tall
-        // target pushes its top (tabs, Run button) off-screen while the sheet
-        // eats the bottom. Pin the target's top to the viewport top instead.
+        // target pushes its top off-screen while the sheet eats the bottom.
+        // Pin the target's top to the viewport top instead — except on results
+        // steps, where the tab bar sits ABOVE the results section: scrolling
+        // the section to the top would push the tabs off-screen, so scroll the
+        // tab bar into view and let the panel follow beneath it. The highlight
+        // stays on the results section itself.
         const narrow = window.innerWidth <= MOBILE_BREAKPOINT;
-        el.scrollIntoView({ behavior: "smooth", block: narrow ? "start" : "center" });
+        const scrollEl =
+            narrow && step.tab
+                ? document.querySelector('[data-tour="tabs"]') ?? el
+                : el;
+        scrollEl.scrollIntoView({ behavior: "smooth", block: narrow ? "start" : "center" });
 
         const measure = () => {
             // Narrow screens: no anchoring, CSS bottom sheet takes over.
