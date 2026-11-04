@@ -3,7 +3,7 @@ import { listPortfolios, deletePortfolio } from "./api.js";
 
 /** Saved-portfolios tab: list mine, load one back into the panel, or delete it.
  *  onLoad(payload) restores the saved tickers + settings so you can re-run. */
-export default function SavedPortfolios({ onLoad }) {
+export default function SavedPortfolios({ onLoad, refreshKey }) {
     const [items, setItems] = useState(null); // null = loading
     const [error, setError] = useState("");
     const [deleting, setDeleting] = useState(null);
@@ -19,7 +19,7 @@ export default function SavedPortfolios({ onLoad }) {
             }
         })();
         return () => { alive = false; };
-    }, []);
+    }, [refreshKey]); // refetch on mount AND after each successful save
 
     async function handleDelete(id) {
         if (!window.confirm("Delete this saved portfolio?")) return;

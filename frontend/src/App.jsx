@@ -46,6 +46,9 @@ function App() {
   const [refreshMsg, setRefreshMsg] = useState("");
   const [authView, setAuthView] = useState(false); // true -> show the login/signup screen
   const [saveMsg, setSaveMsg] = useState("");
+  const [saving, setSaving] = useState(false); // inline save-name form open
+  const [saveName, setSaveName] = useState("");
+  const [savedRefresh, setSavedRefresh] = useState(0); // bumps Saved-tab refetch
   const [tourPrompt, setTourPrompt] = useState(false);
   const [tourActive, setTourActive] = useState(false);
   const [tourStartTab, setTourStartTab] = useState("frontier");
@@ -144,8 +147,10 @@ function App() {
     }
   }
 
-  /** Save the current max-Sharpe result to the user's account. */
-  async function handleSavePortfolio() {
+  /** Save the current max-Sharpe result to the user's account.
+   *  Opens an inline name field — no browser prompt dialog, so a
+   *  dismissed dialog can never silently swallow the save again. */
+  function handleSavePortfolio() {
     setSaveMsg("");
     if (!user) {
       setAuthView(true); // logged out -> prompt login first
@@ -156,18 +161,33 @@ function App() {
       setError("Run an optimization first, then save it.");
       return;
     }
-    const name = window.prompt("Name this portfolio:", inputs.tickers.join(" + "));
-    if (!name || !name.trim()) return;
+    setSaveName(inputs.tickers.join(" + "));
+    setSaving(true);
+  }
+
+  async function confirmSavePortfolio() {
+    const best = optResult && optResult.maxSharpe;
+    if (!best) {
+      setError("Run an optimization first, then save it.");
+      setSaving(false);
+      return;
+    }
+    if (!saveName.trim()) {
+      setError("Give the portfolio a name first.");
+      return; // form stays open so the name can be fixed
+    }
     try {
-      await savePortfolio(name.trim(), {
+      await savePortfolio(saveName.trim(), {
         inputs,
         weights: best.weights,
         metrics: { ret: best.ret, vol: best.vol, sharpe: best.sharpe, dataSource: best.dataSource },
         savedAt: new Date().toISOString(),
       });
       setSaveMsg("Saved — find it under the Saved tab.");
+      setSaving(false);
+      setSavedRefresh((n) => n + 1); // Saved tab refetches on next visit
     } catch (e) {
-      setError(e.message);
+      setError(e.message); // form stays open so the save can be retried
     }
   }
 
@@ -178,6 +198,7 @@ function App() {
     setRebResult(null);
     setTab("frontier");
     setSaveMsg("");
+    setSaving(false);
     setError("");
   }
 
@@ -336,14 +357,41 @@ function App() {
                     />
                     {optResult && (
                         <div style={{ marginTop: 16 }}>
-                          <button
-                              type="button"
-                              className="secondary"
-                              style={{ marginTop: 0 }}
-                              onClick={handleSavePortfolio}
-                          >
-                            {user ? "Save this portfolio" : "Log in to save portfolios"}
-                          </button>
+                          {saving ? (
+                              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    value={saveName}
+                                    onChange={(e) => setSaveName(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") { e.preventDefault(); confirmSavePortfolio(); }
+                                      if (e.key === "Escape") { setSaving(false); setSaveMsg(""); }
+                                    }}
+                                    placeholder="Name this portfolio"
+                                    style={{
+                                      padding: "7px 9px", fontSize: "14px",
+                                      background: "var(--input-bg)", color: "var(--ink)",
+                                      border: "1px solid var(--border)", borderRadius: "6px",
+                                    }}
+                                />
+                                <button type="button" className="secondary" style={{ marginTop: 0 }} onClick={confirmSavePortfolio}>
+                                  Save
+                                </button>
+                                <button type="button" className="secondary" style={{ marginTop: 0 }} onClick={() => { setSaving(false); setSaveMsg(""); }}>
+                                  Cancel
+                                </button>
+                              </div>
+                          ) : (
+                              <button
+                                  type="button"
+                                  className="secondary"
+                                  style={{ marginTop: 0 }}
+                                  onClick={handleSavePortfolio}
+                              >
+                                {user ? "Save this portfolio" : "Log in to save portfolios"}
+                              </button>
+                          )}
                           {saveMsg && <p className="hint" style={{ marginTop: 8 }}>{saveMsg}</p>}
                         </div>
                     )}
@@ -374,7 +422,7 @@ function App() {
               )}
               {visibleTab === "glossary" && <GlossaryView />}
               {visibleTab === "saved" && user && (
-                  <SavedPortfolios onLoad={handleLoadPortfolio} />
+                  <SavedPortfolios onLoad={handleLoadPortfolio} refreshKey={savedRefresh} />
               )}
             </section>
           </main>
