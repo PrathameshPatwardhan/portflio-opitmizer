@@ -107,7 +107,7 @@ export default function Tour({ user, setTab, onClose }) {
     // { style, side, arrow } — style is the card's inline position, side is which
     // edge the arrow sits on ("bottom" = card below target, etc.), arrow is the
     // target-center offset along that edge. null = let CSS place the card
-    // (mobile bottom sheet).
+    // (mobile bottom sheet, or the top-docked card on results steps).
     const [place, setPlace] = useState(null);
 
     useEffect(() => {
@@ -129,26 +129,45 @@ export default function Tour({ user, setTab, onClose }) {
             return undefined;
         }
         el.classList.add("tour-highlight");
-        // On narrow screens the card is a bottom sheet, so centering a tall
-        // target pushes its top off-screen while the sheet eats the bottom.
-        // Pin the target's top to the viewport top instead — except on results
-        // steps, where the tab bar sits ABOVE the results section: scrolling
-        // the section to the top would push the tabs off-screen, so scroll the
-        // tab bar into view and let the panel follow beneath it. The highlight
-        // stays on the results section itself.
+        // Narrow results steps ("tabs tour", frontier -> glossary): the last
+        // fix scrolled the tab bar to the top, but that alone was not enough
+        // — the bar stayed UNDER the tour overlay's dim layer (z-50) while
+        // only the results panel is lifted above it (z-51), so on a phone the
+        // tabs still read as invisible. So for these steps only: dock the
+        // card at the TOP (see .tour-card--top), lift the tab bar above the
+        // overlay with the same ring as the panel, and scroll the bar to sit
+        // just below the card via scroll-padding. Other steps keep the bottom
+        // sheet, and desktop behavior is untouched.
         const narrow = window.innerWidth <= MOBILE_BREAKPOINT;
-        const scrollEl =
-            narrow && step.tab
-                ? document.querySelector('[data-tour="tabs"]') ?? el
-                : el;
-        scrollEl.scrollIntoView({ behavior: "smooth", block: narrow ? "start" : "center" });
+        const tabsEl = document.querySelector('[data-tour="tabs"]');
+        const tabsStep = narrow && step.tab && tabsEl;
+        if (tabsStep) {
+            tabsEl.classList.add("tour-tabs-visible");
+            cardRef.current?.classList.add("tour-card--top");
+        }
+        const scrollEl = tabsStep ? tabsEl : el;
+        const scrollInto = () => {
+            if (tabsStep) {
+                const ch = cardRef.current ? cardRef.current.offsetHeight : 220;
+                document.documentElement.style.scrollPaddingTop = `${ch + 16}px`;
+            }
+            scrollEl.scrollIntoView({
+                behavior: tabsStep ? "auto" : "smooth",
+                block: narrow ? "start" : "center",
+            });
+        };
+        scrollInto();
 
         const measure = () => {
-            // Narrow screens: no anchoring, CSS bottom sheet takes over.
+            // Narrow screens: no anchoring, CSS takes over (bottom sheet, or
+            // the top-docked card on results steps).
             if (window.innerWidth <= MOBILE_BREAKPOINT) {
                 setPlace(null);
                 return;
             }
+            // Back on desktop widths: drop the phone-only top dock and padding.
+            cardRef.current?.classList.remove("tour-card--top");
+            document.documentElement.style.scrollPaddingTop = "";
             const rect = el.getBoundingClientRect();
             const card = cardRef.current;
             const cw = card ? card.offsetWidth : 380;
@@ -212,16 +231,23 @@ export default function Tour({ user, setTab, onClose }) {
         };
 
         const raf = requestAnimationFrame(measure);
-        window.addEventListener("resize", measure);
+        const onResize = () => {
+            measure();
+            if (tabsStep) scrollInto();
+        };
+        window.addEventListener("resize", onResize);
         // Capture phase catches scrolls inside any scroll container, and
         // re-measuring during the smooth scrollIntoView keeps the card glued
         // to the target until it settles.
         window.addEventListener("scroll", measure, { capture: true, passive: true });
         return () => {
             cancelAnimationFrame(raf);
-            window.removeEventListener("resize", measure);
+            window.removeEventListener("resize", onResize);
             window.removeEventListener("scroll", measure, { capture: true });
             el.classList.remove("tour-highlight");
+            tabsEl?.classList.remove("tour-tabs-visible");
+            cardRef.current?.classList.remove("tour-card--top");
+            document.documentElement.style.scrollPaddingTop = "";
         };
     }, [step, setTab]);
 
