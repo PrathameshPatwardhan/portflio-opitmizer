@@ -4,12 +4,12 @@ const STEPS_BASE = [
     {
         target: "intro",
         title: "Welcome to Portfolio Optimizer",
-        body: "This app finds the mix of stocks with the best return for its risk, from real market prices — then turns it into dollars, a tail-risk check, and a holdings dashboard.",
+        body: "This short tour walks you through the app — from picking stocks to reading your results. You can skip it any time.",
     },
     {
         target: "panel",
-        title: "Pick your tickers",
-        body: "Choose two or more tickers from the dropdown, or add any custom ticker. History, risk-free rate, and max weight per asset live here too.",
+        title: "Pick your stocks",
+        body: "Choose two or more stocks from the dropdown, or add any custom stock. History, risk-free rate, and max weight per asset live here too.",
     },
     {
         target: "run",
@@ -26,7 +26,7 @@ const STEPS_BASE = [
         target: "results",
         tab: "portfolio",
         title: "Portfolio: weights into dollars",
-        body: "Per-asset weights, plus 'Turn this into real money' — enter an amount and see whole and fractional shares side by side.",
+        body: "Per-asset weights, plus 'Invest this portfolio' — enter an amount and see whole and fractional shares side by side.",
     },
     {
         target: "results",

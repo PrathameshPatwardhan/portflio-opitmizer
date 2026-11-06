@@ -81,8 +81,8 @@ export default function PortfolioView({ optResult, inputs, onError }) {
   const bar = useMemo(() => {
     if (!shown) return { data: [], layout: {} };
     const entries = Object.entries(shown.weights)
-      .filter(([, w]) => Math.abs(w) > 1e-4)
-      .sort((a, b) => a[1] - b[1]);
+        .filter(([, w]) => Math.abs(w) > 1e-4)
+        .sort((a, b) => a[1] - b[1]);
     return {
       data: [
         {
@@ -107,128 +107,128 @@ export default function PortfolioView({ optResult, inputs, onError }) {
   }
 
   return (
-    <div>
-      <div className="radio-row" role="radiogroup" aria-label="Portfolio">
-        {[
-          ["maxSharpe", "Max Sharpe"],
-          ["minVol", "Min volatility"],
-          ["target", "Target return"],
-        ].map(([key, label]) => (
-          <label key={key} className="radio">
-            <input
-              type="radio"
-              name="portfolio"
-              checked={choice === key}
-              onChange={() => setChoice(key)}
-            />
-            <span>{label}</span>
-          </label>
-        ))}
-      </div>
+      <div>
+        <div className="radio-row" role="radiogroup" aria-label="Portfolio">
+          {[
+            ["maxSharpe", "Max Sharpe"],
+            ["minVol", "Min volatility"],
+            ["target", "Target return"],
+          ].map(([key, label]) => (
+              <label key={key} className="radio">
+                <input
+                    type="radio"
+                    name="portfolio"
+                    checked={choice === key}
+                    onChange={() => setChoice(key)}
+                />
+                <span>{label}</span>
+              </label>
+          ))}
+        </div>
 
-      {choice === "target" && targetReturn !== null && (
-        <label className="field slider-field">
+        {choice === "target" && targetReturn !== null && (
+            <label className="field slider-field">
           <span>
             Target annualized return: {(targetReturn * 100).toFixed(1)}%
             {targetLoading ? " (solving…)" : ""}
           </span>
-          <input
-            type="range"
-            min={lo}
-            max={hi}
-            step={(hi - lo) / 100 || 0.001}
-            value={targetReturn}
-            onChange={(e) => setTargetReturn(Number(e.target.value))}
-          />
-        </label>
-      )}
+              <input
+                  type="range"
+                  min={lo}
+                  max={hi}
+                  step={(hi - lo) / 100 || 0.001}
+                  value={targetReturn}
+                  onChange={(e) => setTargetReturn(Number(e.target.value))}
+              />
+            </label>
+        )}
 
-      {!shown ? (
-        <p className="hint">
-          {choice === "target"
-            ? "Move the slider to solve for a target return."
-            : "No portfolio to show."}
-        </p>
-      ) : (
-        <>
-          <div className="metrics">
-            <div className="metric">
-              <div className="metric-label">Return</div>
-              <div className="metric-value">{(shown.ret * 100).toFixed(1)}%</div>
-            </div>
-            <div className="metric">
-              <div className="metric-label">Volatility</div>
-              <div className="metric-value">{(shown.vol * 100).toFixed(1)}%</div>
-            </div>
-            <div className="metric">
-              <div className="metric-label">Sharpe</div>
-              <div className="metric-value">{shown.sharpe.toFixed(2)}</div>
-            </div>
-          </div>
+        {!shown ? (
+            <p className="hint">
+              {choice === "target"
+                  ? "Move the slider to solve for a target return."
+                  : "No portfolio to show."}
+            </p>
+        ) : (
+            <>
+              <div className="metrics">
+                <div className="metric">
+                  <div className="metric-label">Return</div>
+                  <div className="metric-value">{(shown.ret * 100).toFixed(1)}%</div>
+                </div>
+                <div className="metric">
+                  <div className="metric-label">Volatility</div>
+                  <div className="metric-value">{(shown.vol * 100).toFixed(1)}%</div>
+                </div>
+                <div className="metric">
+                  <div className="metric-label">Sharpe</div>
+                  <div className="metric-value">{shown.sharpe.toFixed(2)}</div>
+                </div>
+              </div>
 
-          <Plot data={bar.data} layout={bar.layout} style={{ width: "100%" }} />
+              <Plot data={bar.data} layout={bar.layout} style={{ width: "100%" }} />
 
-          <table className="weights-table">
-            <thead>
-              <tr>
-                <th>Ticker</th>
-                <th>Weight</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(shown.weights)
-                .sort((a, b) => b[1] - a[1])
-                .map(([t, w]) => (
-                  <tr key={t}>
-                    <td>{t}</td>
-                    <td>{(w * 100).toFixed(1)}%</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-
-          <div style={{ marginTop: 24 }}>
-            <h3>
-            Turn this into real money{" "}
-            <InfoTip text="Weights come from the max-Sharpe optimization. Dollar amounts are proportional splits of your investment. Whole shares round down — the remainder stays as cash. Fractional shares show the exact split if your broker supports them." />
-          </h3>
-            <div style={{ display: "flex", gap: 8, alignItems: "end", flexWrap: "wrap" }}>
-              <label className="field" style={{ margin: 0 }}>
-                <span>Investment amount ($)</span>
-                <input type="number" min="1" step="1" value={amount} onChange={(e) => setAmount(e.target.value)} style={{ width: 140 }} />
-              </label>
-              <button type="button" className="secondary" onClick={runAllocate} disabled={allocLoading}>
-                {allocLoading ? "Splitting…" : "Show me the split"}
-              </button>
-            </div>
-            {alloc && (
-                <>
-                  <table className="weights-table" style={{ marginTop: 12 }}>
-                    <thead>
-                    <tr><th>Ticker</th><th>Weight</th><th>$</th><th>Whole shares</th><th>Fractional</th></tr>
-                    </thead>
-                    <tbody>
-                    {[...alloc.allocations].sort((a, b) => b.weight - a.weight).map((r) => (
-                        <tr key={r.ticker}>
-                          <td>{r.ticker}</td>
-                          <td>{(r.weight * 100).toFixed(1)}%</td>
-                          <td>${r.dollars.toFixed(2)}</td>
-                          <td>{r.wholeShares} (${r.wholeCost.toFixed(2)})</td>
-                          <td>{r.fractionalShares}</td>
+              <table className="weights-table">
+                <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>Weight</th>
+                </tr>
+                </thead>
+                <tbody>
+                {Object.entries(shown.weights)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([t, w]) => (
+                        <tr key={t}>
+                          <td>{t}</td>
+                          <td>{(w * 100).toFixed(1)}%</td>
                         </tr>
                     ))}
-                    </tbody>
-                  </table>
-                  <p className="hint">Leftover cash: ${alloc.leftoverCash.toFixed(2)}.</p>
-                </>
-            )}
-          </div>
-          <h3>
-            What you&rsquo;re looking at{" "}
-            <InfoTip text="Weights add to 100%. Max Sharpe is the best return per unit of risk; min volatility is the calmest mix. Return is the expected yearly gain estimated from history, volatility is how bumpy the ride is, Sharpe is return per unit of risk above the risk-free rate. Past prices are the input, not a promise." />
-          </h3>
-        </>
-      )}
-    </div>
+                </tbody>
+              </table>
+
+              <div style={{ marginTop: 24 }}>
+                <h3>
+                  Invest this portfolio{" "}
+                  <InfoTip text="Weights come from the max-Sharpe optimization. Dollar amounts are proportional splits of your investment. Whole shares round down — the remainder stays as cash. Fractional shares show the exact split if your broker supports them." />
+                </h3>
+                <div style={{ display: "flex", gap: 8, alignItems: "end", flexWrap: "wrap" }}>
+                  <label className="field" style={{ margin: 0 }}>
+                    <span>Investment amount ($)</span>
+                    <input type="number" min="1" step="1" value={amount} onChange={(e) => setAmount(e.target.value)} style={{ width: 140 }} />
+                  </label>
+                  <button type="button" className="secondary" onClick={runAllocate} disabled={allocLoading}>
+                    {allocLoading ? "Splitting…" : "Show me the split"}
+                  </button>
+                </div>
+                {alloc && (
+                    <>
+                      <table className="weights-table" style={{ marginTop: 12 }}>
+                        <thead>
+                        <tr><th>Ticker</th><th>Weight</th><th>$</th><th>Whole shares</th><th>Fractional</th></tr>
+                        </thead>
+                        <tbody>
+                        {[...alloc.allocations].sort((a, b) => b.weight - a.weight).map((r) => (
+                            <tr key={r.ticker}>
+                              <td>{r.ticker}</td>
+                              <td>{(r.weight * 100).toFixed(1)}%</td>
+                              <td>${r.dollars.toFixed(2)}</td>
+                              <td>{r.wholeShares} (${r.wholeCost.toFixed(2)})</td>
+                              <td>{r.fractionalShares}</td>
+                            </tr>
+                        ))}
+                        </tbody>
+                      </table>
+                      <p className="hint">Leftover cash: ${alloc.leftoverCash.toFixed(2)}.</p>
+                    </>
+                )}
+              </div>
+              <h3>
+                What you&rsquo;re looking at{" "}
+                <InfoTip text="Weights add to 100%. Max Sharpe is the best return per unit of risk; min volatility is the calmest mix. Return is the expected yearly gain estimated from history, volatility is how bumpy the ride is, Sharpe is return per unit of risk above the risk-free rate. Past prices are the input, not a promise." />
+              </h3>
+            </>
+        )}
+      </div>
   );
 }

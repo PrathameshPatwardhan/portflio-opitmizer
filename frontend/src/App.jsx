@@ -52,6 +52,12 @@ function App() {
   const [tourPrompt, setTourPrompt] = useState(false);
   const [tourActive, setTourActive] = useState(false);
   const [tourStartTab, setTourStartTab] = useState("frontier");
+  const [introOpen, setIntroOpen] = useState(() => {
+    try { return localStorage.getItem("po-intro-open") !== "0"; } catch { return true; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("po-intro-open", introOpen ? "1" : "0"); } catch {}
+  }, [introOpen]);
 
   const [theme, setTheme] = useState(() => {
     try {
@@ -208,6 +214,7 @@ function App() {
   const visibleTab = (tab === "saved" || tab === "dashboard") && !user ? "frontier" : tab;
 
   function startTour() {
+    setIntroOpen(true); // step 1 anchors to the full intro card
     setTourStartTab(visibleTab);
     setTourPrompt(false);
     setTourActive(true);
@@ -250,7 +257,9 @@ function App() {
               </button>
               {user ? (
                   <div className="auth-area">
-                    <span className="auth-email" title="Signed in">{user.email}</span>
+                    <span className="auth-avatar" title={`Signed in as ${user.email}`} aria-label={`Signed in as ${user.email}`}>
+                      {user.email ? user.email.charAt(0).toUpperCase() : "?"}
+                    </span>
                     <button type="button" className="secondary auth-btn" onClick={logout}>
                       Log out
                     </button>
@@ -286,34 +295,51 @@ function App() {
             </div>
           </div>
           <div className="intro-card" data-tour="intro">
-            <p className="intro-text">
-              Pick a few tickers — the app finds the mix with the best return
-              for its risk, from real market prices. Then it turns the answer
-              into dollar amounts, a tail-risk check, and a dashboard for
-              your holdings.
-            </p>
-            <ol className="intro-steps">
-              <li>
-                <span className="step-num">1</span>
-                <span><strong>Type tickers</strong> in the panel on the left</span>
-              </li>
-              <li>
-                <span className="step-num">2</span>
-                <span><strong>Run optimization</strong> to compute the frontier</span>
-              </li>
-              <li>
-                <span className="step-num">3</span>
-                <span><strong>Explore the tabs</strong> — Frontier, Portfolio, Rebalance, Tail Risk, Glossary</span>
-              </li>
-              <li>
-                <span className="step-num">4</span>
-                {user ? (
-                    <span><strong>Dashboard & Saved</strong> — track real holdings and revisit saved portfolios</span>
-                ) : (
-                    <span><strong>Log in</strong> to save portfolios and track real holdings on the Dashboard</span>
-                )}
-              </li>
-            </ol>
+            <div className="intro-head">
+              {introOpen ? (
+                  <p className="intro-text">
+                    Pick a few stocks — the app finds the mix with the best return
+                    for its risk, from real market prices. Then it turns the answer
+                    into dollar amounts, a tail-risk check, and a dashboard for
+                    your holdings.
+                  </p>
+              ) : (
+                  <p className="intro-text">Instructions hidden.</p>
+              )}
+              <button
+                  type="button"
+                  className="secondary intro-toggle"
+                  onClick={() => setIntroOpen((v) => !v)}
+                  aria-expanded={introOpen}
+                  title={introOpen ? "Hide instructions" : "Show instructions"}
+              >
+                {introOpen ? "Hide" : "Show intro"}
+              </button>
+            </div>
+            {introOpen && (
+                <ol className="intro-steps">
+                  <li>
+                    <span className="step-num">1</span>
+                    <span><strong>Add stocks</strong> in the panel on the left</span>
+                  </li>
+                  <li>
+                    <span className="step-num">2</span>
+                    <span><strong>Run optimization</strong> to compute the frontier</span>
+                  </li>
+                  <li>
+                    <span className="step-num">3</span>
+                    <span><strong>Explore the tabs</strong> — Frontier, Portfolio, Rebalance, Tail Risk, Glossary</span>
+                  </li>
+                  <li>
+                    <span className="step-num">4</span>
+                    {user ? (
+                        <span><strong>Dashboard & Saved</strong> — track real holdings and revisit saved portfolios</span>
+                    ) : (
+                        <span><strong>Log in</strong> to save portfolios and track real holdings on the Dashboard</span>
+                    )}
+                  </li>
+                </ol>
+            )}
           </div>
         </header>
 
