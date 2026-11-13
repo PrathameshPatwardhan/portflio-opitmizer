@@ -3,6 +3,10 @@
 fetch_prices() pulls adjusted closes via yfinance. If the network is
 unavailable it falls back to synthetic geometric-Brownian-motion prices so
 the service still responds (useful for demos and offline dev).
+
+fetch_bars() pulls RAW daily bars: close is the traded close, adj_close is
+Yahoo's split- and dividend-adjusted close. Optimization reads adj_close
+only, so it is unaffected; execution and backtest P&L use the raw close.
 """
 from __future__ import annotations
 
@@ -62,22 +66,26 @@ def annualize(rets: pd.DataFrame, trading_days: int = 252) -> tuple[pd.Series, p
     return mu, cov
 
 def fetch_bars(ticker: str, period: str = "5y") -> pd.DataFrame:
-    """Daily OHLCV bars for ONE ticker via yfinance (auto-adjusted).
+    """Daily OHLCV bars for ONE ticker via yfinance (NOT auto-adjusted).
 
     Returns a DataFrame indexed by date with columns
-    open/high/low/close/adj_close/volume. Empty DataFrame on failure.
+    open/high/low/close/adj_close/volume, where close is the raw traded
+    close and adj_close is Yahoo's split- and dividend-adjusted close.
+    Empty DataFrame on failure.
     """
     if not _HAS_YF:
         return pd.DataFrame()
     try:
-        df = yf.download(ticker, period=period, auto_adjust=True, progress=False)
+        df = yf.download(ticker, period=period, auto_adjust=False, progress=False)
         if df.empty:
             return pd.DataFrame()
         if isinstance(df.columns, pd.MultiIndex):
             df.columns = df.columns.get_level_values(0)
-        df = df.rename(columns=str.lower)
-        df["adj_close"] = df["close"]  # auto_adjust=True already adjusts OHLC
+        # "Adj Close" -> "adj_close": lowercasing alone leaves a space.
+        df.columns = [str(c).lower().replace(" ", "_") for c in df.columns]
+        if "adj_close" not in df.columns:
+            # Indices and some tickers carry no adjusted series; fall back.
+            df["adj_close"] = df["close"]
         return df[["open", "high", "low", "close", "adj_close", "volume"]].dropna()
     except Exception:
         return pd.DataFrame()
-
